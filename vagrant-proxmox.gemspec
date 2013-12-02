@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
 	spec.license = 'MIT'
 	spec.authors = ['Dirk Grappendorf', 'Tim Völpel']
 	spec.email = ['dirk.grappendorf@telcat.de', 'tim.voelpel@telcat.de']
-	spec.homepage = 'http://www.telcat.de'
+	spec.homepage = 'https://github.com/telcat/vagrant-proxmox'
 	spec.summary = 'Enables Vagrant to manage virtual machines on a Proxmox server.'
 	spec.description = 'Enables Vagrant to manage virtual machines on a Proxmox server.'
 
