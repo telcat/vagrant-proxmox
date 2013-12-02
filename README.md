@@ -63,8 +63,7 @@ end
 For the meaning of the various options, refer to the `Options` section below.
 
 You need an OpenVZ template that contains a vagrant user supplied with the default Vagrant SSH keys.
-An example Ubuntu based template can be found in our
-[vagrant-proxmox-templates](https://github.com/telcat/vagrant-proxmox-templates) repository.
+You can download an example Ubuntu based template [here](https://www.dropbox.com/s/vuzywdosxhjjsag/vagrant-proxmox-ubuntu-12.tar.gz).
 
 Finally run `vagrant up --provider=proxmox` to create and start the new OpenVZ container.
 
