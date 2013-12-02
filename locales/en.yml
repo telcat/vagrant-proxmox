@@ -1,0 +1,66 @@
+en:
+  vagrant_proxmox:
+    already_running: 'The virtual machine is already up and running'
+    already_stopped: "The virtual machine is already stopped"
+    creating_vm: 'Creating the virtual machine...'
+    destroying_vm: 'Destroying the virtual machine...'
+    done: "Done!"
+    errors:
+      create_vm_timeout: |-
+        Creating the vm on the proxmox server timed out.
+      communication_error: |-
+        Unable to communicate with proxmox server:
+
+        %{error_msg}
+      destroy_vm_timeout: |-
+        Destroying the vm on the proxmox server timed out.
+      no_endpoint_specified: 'No endpoint specified.'
+      no_os_template_specified: 'No os_template specified.'
+      no_password_specified: 'No password specified.'
+      no_user_name_specified: 'No user_name specified.'
+      no_vm_id_available: |-
+        Unable to create a new virtual machine on the proxmox server.
+        None of the configured vm_ids is available.
+      proxmox_task_failed: |-
+        A task on the proxmox server failed.
+        It returned the following exit status:
+
+        %{proxmox_exit_status}
+      rsync_error: |-
+        There was an error when attemping to rsync a share folder.
+        Please inspect the error message below for more info.
+
+        Host path: %{hostpath}
+        Guest path: %{guestpath}
+        Error: %{stderr}
+      shutdown_vm_timeout: |-
+        Stopping the vm on the proxmox server timed out.
+      start_vm_timeout: |-
+        Starting the vm on the proxmox server timed out.
+      stop_vm_timeout: |-
+        Stopping the vm on the proxmox server timed out.
+      timeout: 'Timeout error'
+      vm_creation_error: |-
+        Unable to create the virtual machine!
+
+        Cause: %{proxmox_exit_status}
+    not_created: 'The virtual machine is not created on the server!'
+    rsync_folder: |-
+          Rsyncing folder: %{hostpath} => %{guestpath}
+    shut_down_vm: 'Shutting down the virtual machine...'
+    starting_vm: 'Starting the virtual machine...'
+    states:
+      long_not_created: |-
+        The server is not created. Run `vagrant up` to create it.
+      long_running: |-
+        The server is up and running. Run `vagrant ssh` to access it.
+      long_stopped: |-
+        The server is stopped.
+      short_not_created: |-
+        not created
+      short_running: |-
+        running
+      short_stopped: |-
+        stopped
+    stopping_vm: 'Stopping the virtual machine...'
+    waiting_for_ssh_connection: 'Waiting for SSH connection...'
