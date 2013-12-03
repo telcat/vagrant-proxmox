@@ -93,3 +93,11 @@ Optionally run the rspec tests with
 ```
 $ rake spec
 ```
+
+## About us
+
+[TELCAT MULTICOM GmbH](http://www.telcat.com) is a Germany-wide system house for innovative solutions and
+services in the areas of information, communication and security technology.
+
+We develop IP-based telecommunication systems ([TELCAT-UC](http://www.telcat.de/TELCAT-R-UC.304.0.html)) and
+use Vagrant and Proxmox to automatically deploy and test the builds in our Jenkins jobs.
