@@ -23,7 +23,7 @@ and provision Proxmox virtual machines.
 Install using standard Vagrant plugin method:
 
 ```
-$ vagrant plugin install vagrant-vsphere
+$ vagrant plugin install vagrant-proxmox
 ```
 
 This will install the plugin from [RubGems.org](http://rubygems.org/).
