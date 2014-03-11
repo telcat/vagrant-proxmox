@@ -1,6 +1,7 @@
 require 'rake'
 require 'rake/clean'
 require 'rubygems'
+require 'bundler/setup'
 require 'rubygems/gem_runner'
 require 'rspec/core/rake_task'
 require 'geminabox_client'
