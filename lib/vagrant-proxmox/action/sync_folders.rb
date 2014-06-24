@@ -33,7 +33,7 @@ module VagrantPlugins
 						# rsync over to the guest path using the SSH info
 						command = [
 								'rsync', '--verbose', '--archive', '--compress', '--delete',
-								'-e', "ssh -p #{ssh_info[:port]} -i '#{ssh_info[:private_key_path]}' -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
+								'-e', "ssh -p #{ssh_info[:port]} -i '#{ssh_info[:private_key_path][0]}' -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
 								hostpath, "#{ssh_info[:username]}@#{ssh_info[:host]}:#{guestpath}"]
 
 						rsync_process = Vagrant::Util::Subprocess.execute *command

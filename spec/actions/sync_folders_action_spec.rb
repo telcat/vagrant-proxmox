@@ -13,7 +13,7 @@ module VagrantPlugins::Proxmox
 		describe '#call' do
 
 			before do
-				env[:machine].stub(:ssh_info) { {host: '127.0.0.1', port: 22, username: 'vagrant', private_key_path: 'key'} }
+				env[:machine].stub(:ssh_info) { {host: '127.0.0.1', port: 22, username: 'vagrant', private_key_path: ['key']} }
 				env[:machine].communicate.stub :sudo
 				Vagrant::Util::Subprocess.stub(:execute).and_return Vagrant::Util::Subprocess::Result.new 0, nil, nil
 			end

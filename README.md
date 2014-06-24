@@ -1,6 +1,6 @@
 # Vagrant Proxmox Provider
 
-This is a [Vagrant](http://www.vagrantup.com) 1.3+ plugin that adds a
+This is a [Vagrant](http://www.vagrantup.com) 1.4+ plugin that adds a
 [Proxmox](http://proxmox.com/) provider to Vagrant, allowing Vagrant to manage
 and provision Proxmox virtual machines.
 
