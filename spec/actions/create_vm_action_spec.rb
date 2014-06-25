@@ -93,37 +93,28 @@ describe VagrantPlugins::Proxmox::Action::CreateVm do
 
 		context 'when the proxmox server responds with an error to the create request' do
 
-			let(:error_exit_status) { ["can't lock container 100", "close (rename) atomic file '/etc/pve/nodes/localhost/openvz/100.conf' failed: File exists"] }
-
 			before { subject.stub :sleep }
 
-			context 'when the proxmox server replies with an exit status describing the error' do
-				it 'should create a virtual machine with another vmid' do
-					expect(subject).to receive(:get_free_vm_id).with(env).twice.and_return(100, 101)
-					expect(subject).to receive(:wait_for_completion).twice.and_return(error_exit_status.sample, 'OK')
-					subject.call env
-					env[:machine].id.should == 'localhost/101'
-				end
-			end
-
-			context 'when the proxmox server replies with a "500 Internal Server Error"' do
-				it 'should create a virtual machine with another vmid' do
-					expect(subject).to receive(:get_free_vm_id).with(env).twice.and_return(100, 101)
-					expect(subject).to receive(:wait_for_completion).and_raise(RestClient::InternalServerError).once
-					expect(subject).to receive(:wait_for_completion).once.and_return('OK')
-					subject.call env
-					env[:machine].id.should == 'localhost/101'
-				end
-			end
-
-			context 'when the create requests fail continuously before the timeout deadline is reached' do
+			context 'when the proxmox server replies with an internal server error to the post request' do
 				it 'should raise a VMCreationError' do
-					expect(subject).to receive(:get_free_vm_id).with(env).exactly(30).times.and_return(100)
-					expect(subject).to receive(:wait_for_completion).exactly(30).times.and_return(error_exit_status.sample)
-					expect { subject.send :call, env }.to raise_error VagrantPlugins::Proxmox::Errors::VMCreationError
+          RestClient.stub(:post).and_raise RestClient::InternalServerError
+          expect { subject.send :call, env }.to raise_error VagrantPlugins::Proxmox::Errors::VMCreationError
 				end
 			end
 
+			context 'when the proxmox server replies with an internal server error to the task status request' do
+        it 'should raise a VMCreationError' do
+					subject.stub(:wait_for_completion).and_raise RestClient::InternalServerError
+          expect { subject.send :call, env }.to raise_error VagrantPlugins::Proxmox::Errors::VMCreationError
+				end
+			end
+
+      context 'when the proxmox server does not reply the task status request with OK' do
+        it 'should raise a VMCreationError' do
+          subject.stub(:wait_for_completion).and_return 'create vm error'
+          expect { subject.send :call, env }.to raise_error VagrantPlugins::Proxmox::Errors::VMCreationError, /create vm error/
+        end
+      end
 		end
 
 	end

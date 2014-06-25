@@ -18,23 +18,20 @@ module VagrantPlugins
 					vm_id = nil
 
 					begin
-						retryable(tries: config.task_timeout,
-						          sleep: config.task_status_check_interval) do
-							vm_id = get_free_vm_id env
-							params = {vmid: vm_id,
-							          ostemplate: config.os_template,
-							          hostname: env[:machine].config.vm.hostname || env[:machine].name.to_s,
-							          password: 'vagrant',
-							          memory: config.vm_memory,
-							          description: "#{config.vm_name_prefix}#{env[:machine].name}"}
-							get_machine_ip_address(env).try { |ip_address| params[:ip_address] = ip_address }
+						vm_id = get_free_vm_id env
+						params = {vmid: vm_id,
+											ostemplate: config.os_template,
+											hostname: env[:machine].config.vm.hostname || env[:machine].name.to_s,
+											password: 'vagrant',
+											memory: config.vm_memory,
+											description: "#{config.vm_name_prefix}#{env[:machine].name}"}
+						get_machine_ip_address(env).try { |ip_address| params[:ip_address] = ip_address }
 
-							response = RestClient.post "#{config.endpoint}/nodes/#{node}/openvz", params,
-							                           {CSRFPreventionToken: env[:proxmox_csrf_prevention_token],
-							                            cookies: {PVEAuthCookie: env[:proxmox_ticket]}}
-							exit_status = wait_for_completion parse_task_id(response), node, env, 'vagrant_proxmox.errors.create_vm_timeout'
-							exit_status == 'OK' ? exit_status : raise(VagrantPlugins::Proxmox::Errors::ProxmoxTaskFailed, proxmox_exit_status: exit_status)
-						end
+						response = RestClient.post "#{config.endpoint}/nodes/#{node}/openvz", params,
+																			 {CSRFPreventionToken: env[:proxmox_csrf_prevention_token],
+																				cookies: {PVEAuthCookie: env[:proxmox_ticket]}}
+						exit_status = wait_for_completion parse_task_id(response), node, env, 'vagrant_proxmox.errors.create_vm_timeout'
+						exit_status == 'OK' ? exit_status : raise(VagrantPlugins::Proxmox::Errors::ProxmoxTaskFailed, proxmox_exit_status: exit_status)
 					rescue StandardError => e
 						raise VagrantPlugins::Proxmox::Errors::VMCreationError, proxmox_exit_status: e.message
 					end
