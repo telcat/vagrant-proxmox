@@ -42,12 +42,12 @@ Then create a Vagrantfile that looks like the following:
 Vagrant.configure('2') do |config|
 
 	config.vm.provider :proxmox do |proxmox|
-		proxmox.endpoint = 'https://your.proxmox.server/api2/json'
+		proxmox.endpoint = 'https://your.proxmox.server:8006/api2/json'
 		proxmox.user_name = 'vagrant'
 		proxmox.password = 'password'
 		proxmox.vm_id_range = 900..910
 		proxmox.vm_name_prefix = 'vagrant_'
-		proxmox.os_template = 'local:vztmpl/template.tgz'
+		proxmox.os_template = 'local:vztmpl/vagrant-proxmox-ubuntu-12.tar.gz'
 		proxmox.vm_memory = 256
 		proxmox.task_timeout = 30
 		proxmox.task_status_check_interval = 1
