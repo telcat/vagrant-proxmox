@@ -6,7 +6,7 @@ describe VagrantPlugins::Proxmox::Action::MessageAlreadyStopped do
 	let(:environment) { Vagrant::Environment.new vagrantfile_name: 'dummy_box/Vagrantfile' }
 	let(:env) { {ui: double('ui').as_null_object} }
 
-	subject { described_class.new(-> (_) {}, environment) }
+	subject(:action) { described_class.new(-> (_) {}, environment) }
 
 	before { VagrantPlugins::Proxmox::Plugin.setup_i18n }
 
@@ -16,7 +16,7 @@ describe VagrantPlugins::Proxmox::Action::MessageAlreadyStopped do
 
 		specify do
 			expect(env[:ui]).to receive(:info).with 'The virtual machine is already stopped'
-			subject.call env
+			action.call env
 		end
 	end
 

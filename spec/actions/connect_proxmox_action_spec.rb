@@ -7,39 +7,54 @@ module VagrantPlugins::Proxmox
 
 		let(:environment) { Vagrant::Environment.new vagrantfile_name: 'dummy_box/Vagrantfile' }
 		let(:env) { {machine: environment.machine(environment.primary_machine_name, :proxmox)} }
+		let(:api_url) { 'http://your.proxmox.machine/api' }
+		let(:username) { 'user' }
+		let(:password) { 'password' }
+		let(:connection) { env[:proxmox_connection] }
 
-		subject { described_class.new(-> (_) {}, environment) }
+		subject(:action) { described_class.new(-> (_) {}, environment) }
 
 		before { VagrantPlugins::Proxmox::Plugin.setup_i18n }
 
 		describe '#call' do
 
 			before do
-				allow(RestClient).to receive(:post).and_return({data: {ticket: 'valid_ticket', CSRFPreventionToken: 'valid_token'}}.to_json)
+				env[:machine].provider_config.endpoint = api_url
+				env[:machine].provider_config.user_name = username
+				env[:machine].provider_config.password = password
+				env[:machine].provider_config.vm_id_range = 500..555
+				env[:machine].provider_config.task_timeout = 123
+				env[:machine].provider_config.task_status_check_interval = 5
+				Connection.any_instance.stub :login
 			end
 
 			it_behaves_like 'a proxmox action call'
 
-			it 'should call the REST API access/ticket' do
-				RestClient.should_receive(:post).with('https://your.proxmox.server/api2/json/access/ticket', {username: 'vagrant', password: 'password'})
-				subject.call env
+			it 'should store a connection object in env[:proxmox_connection]' do
+				action.call env
+				connection.api_url.should == api_url
 			end
 
-			it 'should store the access ticket in env[:proxmox_ticket]' do
-				subject.call env
-				env[:proxmox_ticket].should == 'valid_ticket'
+			describe 'sets the connection configuration parameters' do
+				before { action.call env }
+				specify { connection.vm_id_range.should == (500..555) }
+				specify { connection.task_timeout.should == 123 }
+				specify { connection.task_status_check_interval.should == 5 }
 			end
 
-			it 'should store the access ticket in env[:proxmox_csrf_prevention_token]' do
-				subject.call env
-				env[:proxmox_csrf_prevention_token].should == 'valid_token'
+			it 'should call the login function with credentials from configuration' do
+				Connection.any_instance.should_receive(:login).with username: username, password: password
+				action.call env
 			end
 
-			describe 'when the server communication fails' do
-				before { RestClient.stub(:post).and_return nil }
-				specify do
-					expect { subject.call env }.to raise_error Errors::CommunicationError
+			context 'when the server communication fails' do
+
+				before { Connection.any_instance.stub(:login).and_raise ApiError::InvalidCredentials }
+
+				it 'should raise an error' do
+					expect { action.call env }.to raise_error Errors::CommunicationError
 				end
+
 			end
 
 		end

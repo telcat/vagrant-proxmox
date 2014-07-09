@@ -2,7 +2,7 @@ module VagrantPlugins
 	module Proxmox
 		module Action
 
-			# This action stops a Proxmox virtual machine.
+			# This action stops the Proxmox virtual machine in env[:machine]
 			class StopVm < ProxmoxAction
 
 				def initialize app, env
@@ -11,14 +11,15 @@ module VagrantPlugins
 				end
 
 				def call env
-					endpoint = env[:machine].provider_config.endpoint
-					node, vm_id = env[:machine].id.split '/'
-					env[:ui].info I18n.t('vagrant_proxmox.stopping_vm')
-					response = RestClient.post "#{endpoint}/nodes/#{node}/openvz/#{vm_id}/status/stop", nil,
-																		 {CSRFPreventionToken: env[:proxmox_csrf_prevention_token],
-																		  cookies: {PVEAuthCookie: env[:proxmox_ticket]}}
+					begin
+						node, vm_id = env[:machine].id.split '/'
+						env[:ui].info I18n.t('vagrant_proxmox.stopping_vm')
+						exit_status = connection(env).stop_vm node: node, vm_id: vm_id
+						exit_status == 'OK' ? exit_status : raise(VagrantPlugins::Proxmox::Errors::ProxmoxTaskFailed, proxmox_exit_status: exit_status)
+					rescue StandardError => e
+						raise VagrantPlugins::Proxmox::Errors::VMStopError, proxmox_exit_status: e.message
+					end
 
-					wait_for_completion parse_task_id(response), node, env, 'vagrant_proxmox.errors.stop_vm_timeout'
 					env[:ui].info I18n.t('vagrant_proxmox.done')
 
 					next_action env

@@ -2,8 +2,8 @@ module VagrantPlugins
 	module Proxmox
 		module Action
 
-			# This action gets a list of all the nodes of a Proxmox server cluster
-			# and stores it under env[:proxmox_nodes]
+			# This action gets a list of all the nodes e.g. ['node1', 'node2'] of
+			# a Proxmox server cluster and stores it under env[:proxmox_nodes]
 			class GetNodeList < ProxmoxAction
 
 				def initialize app, env
@@ -11,10 +11,12 @@ module VagrantPlugins
 				end
 
 				def call env
-					endpoint = env[:machine].provider_config.endpoint
-					response = RestClient.get "#{endpoint}/nodes", {cookies: {PVEAuthCookie: env[:proxmox_ticket]}}
-					env[:proxmox_nodes] = JSON.parse(response.to_s, symbolize_names: true)[:data]
-					next_action env
+					begin
+						env[:proxmox_nodes] = env[:proxmox_connection].get_node_list
+						next_action env
+					rescue => e
+						raise Errors::CommunicationError, error_msg: e.message
+					end
 				end
 
 			end

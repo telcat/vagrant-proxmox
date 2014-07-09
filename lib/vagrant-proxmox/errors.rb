@@ -26,8 +26,24 @@ module VagrantPlugins
 				error_key :no_vm_id_available
 			end
 
-			class VMCreationError < VagrantProxmoxError
-				error_key :vm_creation_error
+			class VMCreateError < VagrantProxmoxError
+				error_key :vm_create_error
+			end
+
+			class VMDestroyError < VagrantProxmoxError
+				error_key :vm_destroy_error
+			end
+
+			class VMStartError < VagrantProxmoxError
+				error_key :vm_start_error
+			end
+
+			class VMStopError < VagrantProxmoxError
+				error_key :vm_stop_error
+			end
+
+			class VMShutdownError < VagrantProxmoxError
+				error_key :vm_shutdown_error
 			end
 
 			class RsyncError < VagrantProxmoxError

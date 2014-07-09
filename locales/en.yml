@@ -40,8 +40,24 @@ en:
       stop_vm_timeout: |-
         Stopping the vm on the proxmox server timed out.
       timeout: 'Timeout error'
-      vm_creation_error: |-
+      vm_create_error: |-
         Unable to create the virtual machine!
+
+        Cause: %{proxmox_exit_status}
+      vm_destroy_error: |-
+        Unable to destroy the virtual machine!
+
+        Cause: %{proxmox_exit_status}
+      vm_start_error: |-
+        Unable to start the virtual machine!
+
+        Cause: %{proxmox_exit_status}
+      vm_stop_error: |-
+        Unable to stop the virtual machine!
+
+        Cause: %{proxmox_exit_status}
+      vm_shutdown_error: |-
+        Unable to shutdown the virtual machine!
 
         Cause: %{proxmox_exit_status}
     not_created: 'The virtual machine is not created on the server!'

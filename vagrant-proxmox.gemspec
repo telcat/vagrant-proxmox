@@ -15,7 +15,6 @@ Gem::Specification.new do |spec|
 	spec.add_runtime_dependency 'rest-client', '~> 1.6.7'
 	spec.add_runtime_dependency 'retryable', '~> 1.3.3'
 	spec.add_runtime_dependency 'activesupport', '~> 4.0.0'
-
 	spec.add_development_dependency 'rake'
 	spec.add_development_dependency 'rspec', '~> 2.14.0'
 	spec.add_development_dependency 'simplecov', '~> 0.7.1'
@@ -23,6 +22,7 @@ Gem::Specification.new do |spec|
 	spec.add_development_dependency 'geminabox', '~> 0.11.1'
 	spec.add_development_dependency 'guard-rspec', '4.2.10'
 	spec.add_development_dependency 'libnotify', '~> 0.8.3'
+	spec.add_development_dependency 'timecop', '~>0.7.1'
 
 	spec.files = Dir.glob('lib/**/*.rb') + Dir.glob('locales/**/*.yml')
 	spec.test_files = Dir.glob 'spec/**/*.rb'

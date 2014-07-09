@@ -1,52 +1,54 @@
 require 'spec_helper'
 require 'actions/proxmox_action_shared'
 
-describe VagrantPlugins::Proxmox::Action::ReadState do
+module VagrantPlugins::Proxmox
 
-	let(:environment) { Vagrant::Environment.new vagrantfile_name: 'dummy_box/Vagrantfile' }
-	let(:env) { {machine: environment.machine(environment.primary_machine_name, :proxmox)} }
+	describe VagrantPlugins::Proxmox::Action::ReadState do
 
-	subject { described_class.new(-> (_) {}, environment) }
+		let(:environment) { Vagrant::Environment.new vagrantfile_name: 'dummy_box/Vagrantfile' }
+		let(:connection) { Connection.new 'https://your.proxmox.server/api2/json' }
+		let(:env) { {machine: environment.machine(environment.primary_machine_name, :proxmox), proxmox_connection: connection} }
+		let(:node) { 'localhost' }
+		let(:vm_id) { '100' }
+		let(:machine_id) { "#{node}/#{vm_id}" }
 
-	describe '#call' do
+		subject(:action) { described_class.new(-> (_) {}, environment) }
 
-		it_behaves_like 'a proxmox action call'
-
-		context 'when no machine id is defined' do
-			specify do
-				subject.call env
-				env[:machine_state_id].should == :not_created
-			end
+		before do
+			env[:machine].stub(:id) { machine_id }
+			connection.stub :get_vm_state
 		end
 
-		context 'when the machine is not created' do
-			before { env[:machine].id = 'localhost/100' }
-			specify do
-				RestClient.should_receive(:get).with('https://your.proxmox.server/api2/json/nodes/localhost/openvz/100/status/current', anything).
-						and_raise(RestClient::InternalServerError)
-				subject.call env
-				env[:machine_state_id].should == :not_created
-			end
-		end
+		describe '#call' do
 
-		context 'when the machine is stopped' do
-			before { env[:machine].id = 'localhost/100' }
-			specify do
-				RestClient.should_receive(:get).with('https://your.proxmox.server/api2/json/nodes/localhost/openvz/100/status/current', anything).
-						and_return({data: {status: 'stopped'}}.to_json)
-				subject.call env
-				env[:machine_state_id].should == :stopped
-			end
-		end
+			it_behaves_like 'a proxmox action call'
 
-		context 'when the machine is running' do
-			before { env[:machine].id = 'localhost/100' }
-			specify do
-				RestClient.should_receive(:get).with('https://your.proxmox.server/api2/json/nodes/localhost/openvz/100/status/current', anything).
-						and_return({data: {status: 'running'}}.to_json)
-				subject.call env
+			it 'should store the machine state in env[:machine_state_id]' do
+				connection.should_receive(:get_vm_state).and_return :running
+				action.call env
 				env[:machine_state_id].should == :running
 			end
+
+			it 'should call get_vm_state with the node and vm_id' do
+				connection.should_receive(:get_vm_state).with node: node, vm_id: vm_id
+				action.call env
+			end
+
+			context 'when no machine id is defined' do
+				let(:machine_id) { nil }
+				it 'should [:machine_state_id] to :not_created' do
+					action.call env
+					env[:machine_state_id].should == :not_created
+				end
+			end
+
+			context 'when the server communication fails' do
+				before { connection.stub(:get_vm_state).and_raise ApiError::ConnectionError }
+				it 'should raise an error' do
+					expect { action.call env }.to raise_error Errors::CommunicationError
+				end
+			end
+
 		end
 
 	end

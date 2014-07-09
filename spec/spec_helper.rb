@@ -14,20 +14,23 @@ end
 
 require 'vagrant-proxmox'
 require 'active_support/core_ext/string'
+require 'timecop'
+require 'spec_helpers/time_helpers'
+
 
 RSpec.configure do |config|
 	config.treat_symbols_as_metadata_keys_with_true_values = true
 
 	config.before(:suite) do
 		begin
-			Vagrant::Environment.new.boxes.add 'dummy_box/dummy.box', 'dummy', :proxmox
+			Vagrant::Environment.new.boxes.add 'dummy_box/dummy.box', 'b681e2bc-617b-4b35-94fa-edc92e1071b8', :proxmox
 		rescue Vagrant::Errors::BoxAlreadyExists
 
 		end
 		FileUtils.rm_r '.vagrant', force: true
 	end
 	config.after(:suite) do
-		execute_vagrant_command Vagrant::Environment.new, :box, 'remove', 'dummy'
+		execute_vagrant_command Vagrant::Environment.new, :box, 'remove', 'b681e2bc-617b-4b35-94fa-edc92e1071b8'
 	end
 	config.after(:each) do
 		FileUtils.rm_r '.vagrant', force: true
@@ -36,6 +39,7 @@ RSpec.configure do |config|
 	config.before(:each, :need_box) do
 		up_local_box
 	end
+
 end
 
 
@@ -112,12 +116,12 @@ def be_called &action_stub
 	ActionCallMatcher.new action_stub, environment, self, :called
 end
 
-def be_ommited &action_stub
+def be_omitted &action_stub
 	ActionCallMatcher.new action_stub, environment, self, :ommited
 end
 
 def up_local_box
-	Vagrant::UI::Interface.stub(:new).and_return ui
+	Vagrant::UI::Interface.stub :new => ui
 	stub_action(VagrantPlugins::Proxmox::Action::ConnectProxmox)
 	stub_action(VagrantPlugins::Proxmox::Action::GetNodeList) { |env| env[:proxmox_nodes] = [{node: 'localhost'}] }
 	stub_action(VagrantPlugins::Proxmox::Action::IsCreated) { |env| env[:result] = false }

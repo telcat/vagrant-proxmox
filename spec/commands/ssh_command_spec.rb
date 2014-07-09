@@ -11,7 +11,7 @@ module VagrantPlugins::Proxmox
 			it 'should call the appropriate actions and print a ui message that the vm is not created' do
 				Action::IsCreated.should be_called { |env| env[:result] = false }
 				Action::MessageNotCreated.should be_called
-				Action::SSHExec.should be_ommited
+				Action::SSHExec.should be_omitted
 				execute_vagrant_command environment, :ssh
 			end
 		end

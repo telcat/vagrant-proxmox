@@ -7,14 +7,14 @@ describe VagrantPlugins::Proxmox::Action::CleanupAfterDestroy do
 	let(:env) { {machine: environment.machine(environment.primary_machine_name, :proxmox)} }
 	let(:ui) { double('ui').as_null_object }
 
-	subject { described_class.new(-> (_) {}, environment) }
+	subject(:action) { described_class.new(-> (_) {}, environment) }
 
 	it_behaves_like 'a proxmox action call'
 
 	describe '#call', :need_box do
 		it 'should delete the directory `.vagrant/[:machine].name`' do
 			expect do
-				subject.call env
+				action.call env
 			end.to change{File.exists?(".vagrant/machines/#{env[:machine].name}/proxmox")}.to false
 		end
 	end
