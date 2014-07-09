@@ -2,6 +2,7 @@ module VagrantPlugins
   module Proxmox
     module Action
 
+			# set env[:result] to :stopped
       class IsStopped < ProxmoxAction
 
         def initialize app, env

@@ -12,8 +12,8 @@ module VagrantPlugins::Proxmox
 				Action::ConfigValidate.should be_called
 				Action::IsCreated.should be_called { |env| env[:result] = false }
 				Action::MessageNotCreated.should be_called
-				Action::Provision.should be_ommited
-				Action::SyncFolders.should be_ommited
+				Action::Provision.should be_omitted
+				Action::SyncFolders.should be_omitted
 				execute_vagrant_command environment, :provision
 			end
 		end

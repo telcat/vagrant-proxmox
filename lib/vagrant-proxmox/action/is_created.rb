@@ -2,6 +2,7 @@ module VagrantPlugins
 	module Proxmox
 		module Action
 
+			# set env[:result] to :is_created
 			class IsCreated < ProxmoxAction
 
 				def initialize app, env

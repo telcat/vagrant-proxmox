@@ -4,6 +4,7 @@
 guard :rspec do
   watch(%r{^spec/.+_spec\.rb$})
   watch('spec/spec_helper.rb')  { "spec" }
-  watch(%r{^lib/vagrant-proxmox/action/(.+)\.rb$})     { |m| "spec/actions/#{m[1]}_action_spec.rb" }
+  watch(%r{^lib/vagrant-proxmox/action/(.+)\.rb$}) { |m| "spec/actions/#{m[1]}_action_spec.rb" }
+	watch(%r{^lib/vagrant-proxmox/proxmox/(.+)\.rb$}) { |m| "spec/proxmox/#{m[1]}_spec.rb" }
 end
 

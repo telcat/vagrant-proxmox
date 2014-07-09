@@ -13,6 +13,6 @@ Vagrant.configure('2') do |config|
 	end
 
 	config.vm.define :box, primary: true do |box|
-		box.vm.box = 'dummy'
+		box.vm.box = 'b681e2bc-617b-4b35-94fa-edc92e1071b8'
 	end
 end

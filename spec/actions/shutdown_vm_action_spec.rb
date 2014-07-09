@@ -1,35 +1,63 @@
 require 'spec_helper'
 require 'actions/proxmox_action_shared'
 
-describe VagrantPlugins::Proxmox::Action::ShutdownVm do
+module VagrantPlugins::Proxmox
 
-	let(:environment) { Vagrant::Environment.new vagrantfile_name: 'dummy_box/Vagrantfile' }
-	let(:env) { {machine: environment.machine(environment.primary_machine_name, :proxmox),
-							 proxmox_nodes: [{node: 'localhost'}],
-							 ui: double('ui').as_null_object} }
+	describe Action::ShutdownVm do
 
-	subject { described_class.new(-> (_) {}, environment) }
+		let(:environment) { Vagrant::Environment.new vagrantfile_name: 'dummy_box/Vagrantfile' }
+		let(:connection) { Connection.new 'https://your.proxmox.server/api2/json' }
+		let(:env) { {machine: environment.machine(environment.primary_machine_name, :proxmox),
+								 ui: double('ui').as_null_object,
+								 proxmox_connection: connection} }
 
-	describe '#call' do
+		subject(:action) { described_class.new(-> (_) {}, environment) }
 
-		before do
-			env[:machine].id = 'localhost/100'
-			allow(RestClient).to receive(:post).and_return({data: 'task_id'}.to_json)
-			allow(RestClient).to receive(:get).and_return({data: {exitstatus: 'OK'}}.to_json)
-		end
+		describe '#call' do
 
-		it_behaves_like 'a proxmox action call'
-		it_behaves_like 'a blocking proxmox action'
+			before do
+				env[:machine].id = 'localhost/100'
+				connection.stub :shutdown_vm => 'OK'
+			end
 
-		it 'should send a post request that shuts down the openvz container' do
-			RestClient.should_receive(:post).with('https://your.proxmox.server/api2/json/nodes/localhost/openvz/100/status/shutdown', nil, anything)
-			subject.call env
-		end
+			it_behaves_like 'a proxmox action call'
 
-		it 'should print a message to the user interface' do
-			env[:ui].should_receive(:info).with 'Shutting down the virtual machine...'
-			env[:ui].should_receive(:info).with 'Done!'
-			subject.call env
+			it 'should call the shutdown_vm function of connection' do
+				connection.should_receive(:shutdown_vm).with node: 'localhost', vm_id: '100'
+				action.call env
+			end
+
+			it 'should print a message to the user interface' do
+				env[:ui].should_receive(:info).with 'Shutting down the virtual machine...'
+				env[:ui].should_receive(:info).with 'Done!'
+				action.call env
+			end
+
+			context 'when the proxmox server responds with an error to the shutdown request' do
+
+				context 'when the proxmox server replies with an internal server error to the shutdown request' do
+					it 'should raise a VMShutdownError' do
+						connection.stub(:shutdown_vm).and_raise ApiError::ServerError
+						expect { action.send :call, env }.to raise_error Errors::VMShutdownError
+					end
+				end
+
+				context 'when the proxmox server replies with an internal server error to the task status request' do
+					it 'should raise a VMShutdownError' do
+						connection.stub(:shutdown_vm).and_raise ApiError::ServerError
+						expect { action.send :call, env }.to raise_error Errors::VMShutdownError
+					end
+				end
+
+				context 'when the proxmox server does not reply the task status request with OK' do
+					it 'should raise a VMShutdownError' do
+						connection.stub :shutdown_vm => 'shutdown vm error'
+						expect { action.send :call, env }.to raise_error Errors::VMShutdownError, /shutdown vm error/
+					end
+				end
+
+			end
+
 		end
 
 	end

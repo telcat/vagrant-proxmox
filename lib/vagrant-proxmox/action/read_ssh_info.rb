@@ -2,6 +2,7 @@ module VagrantPlugins
 	module Proxmox
 		module Action
 
+			# This action stores the ssh information in env[:machine_ssh_info]
 			class ReadSSHInfo < ProxmoxAction
 
 				def initialize app, env

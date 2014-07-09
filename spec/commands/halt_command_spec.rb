@@ -12,20 +12,20 @@ module VagrantPlugins::Proxmox
 				Action::ConfigValidate.should be_called
 				Action::IsCreated.should be_called { |env| env[:result] = false }
 				Action::MessageNotCreated.should be_called
-				Action::ConnectProxmox.should be_ommited
-				Action::ShutdownVm.should be_ommited
+				Action::ConnectProxmox.should be_omitted
+				Action::ShutdownVm.should be_omitted
 				execute_vagrant_command environment, :halt
 			end
 		end
 
 		context 'the vm is stopped' do
-			it 'should call the appropriate actions to shut down the vm' do
+			it 'should not shut down the vm and print a vm message that the vm is already stopped' do
 				Action::ConfigValidate.should be_called
 				Action::IsCreated.should be_called { |env| env[:result] = true }
 				Action::IsStopped.should be_called { |env| env[:result] = true }
 				Action::MessageAlreadyStopped.should be_called
-				Action::ConnectProxmox.should be_ommited
-				Action::ShutdownVm.should be_ommited
+				Action::ConnectProxmox.should be_omitted
+				Action::ShutdownVm.should be_omitted
 				execute_vagrant_command environment, :halt
 			end
 		end
@@ -35,7 +35,7 @@ module VagrantPlugins::Proxmox
 				Action::ConfigValidate.should be_called
 				Action::IsCreated.should be_called { |env| env[:result] = true }
 				Action::IsStopped.should be_called { |env| env[:result] = false }
-				Action::ConnectProxmox.should be_called { |env| env[:proxmox_ticket] = 'ticket' }
+				Action::ConnectProxmox.should be_called
 				Action::ShutdownVm.should be_called
 				execute_vagrant_command environment, :halt
 			end

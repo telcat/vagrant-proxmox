@@ -14,43 +14,29 @@ module VagrantPlugins
 				def call env
 					env[:ui].info I18n.t('vagrant_proxmox.creating_vm')
 					config = env[:machine].provider_config
-					node = env[:proxmox_nodes].sample[:node]
+					node = env[:proxmox_nodes].sample
 					vm_id = nil
 
 					begin
-						vm_id = get_free_vm_id env
+						vm_id = connection(env).get_free_vm_id
 						params = {vmid: vm_id,
 											ostemplate: config.os_template,
 											hostname: env[:machine].config.vm.hostname || env[:machine].name.to_s,
 											password: 'vagrant',
 											memory: config.vm_memory,
 											description: "#{config.vm_name_prefix}#{env[:machine].name}"}
-						get_machine_ip_address(env).try { |ip_address| params[:ip_address] = ip_address }
+						params[:ip_address] = get_machine_ip_address(env) if get_machine_ip_address(env)
 
-						response = RestClient.post "#{config.endpoint}/nodes/#{node}/openvz", params,
-																			 {CSRFPreventionToken: env[:proxmox_csrf_prevention_token],
-																				cookies: {PVEAuthCookie: env[:proxmox_ticket]}}
-						exit_status = wait_for_completion parse_task_id(response), node, env, 'vagrant_proxmox.errors.create_vm_timeout'
+						exit_status = connection(env).create_vm node: node, params: params
 						exit_status == 'OK' ? exit_status : raise(VagrantPlugins::Proxmox::Errors::ProxmoxTaskFailed, proxmox_exit_status: exit_status)
 					rescue StandardError => e
-						raise VagrantPlugins::Proxmox::Errors::VMCreationError, proxmox_exit_status: e.message
+						raise VagrantPlugins::Proxmox::Errors::VMCreateError, proxmox_exit_status: e.message
 					end
 
 					env[:machine].id = "#{node}/#{vm_id}"
 
 					env[:ui].info I18n.t('vagrant_proxmox.done')
 					next_action env
-				end
-
-				private
-				def get_free_vm_id env
-					response = RestClient.get "#{env[:machine].provider_config.endpoint}/cluster/resources?type=vm", {cookies: {PVEAuthCookie: env[:proxmox_ticket]}}
-					json_response = JSON.parse response.to_s, symbolize_names: true
-
-					allowed_vm_ids = env[:machine].provider_config.vm_id_range.to_set
-					used_vm_ids = json_response[:data].map { |vm| vm[:vmid] }
-					free_vm_ids = (allowed_vm_ids - used_vm_ids).sort
-					free_vm_ids.empty? ? raise(VagrantPlugins::Proxmox::Errors::NoVmIdAvailable) : free_vm_ids.first
 				end
 
 			end

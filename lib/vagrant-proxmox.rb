@@ -1,12 +1,11 @@
 require 'pathname'
 require 'log4r'
-require 'rest-client'
-require 'retryable'
 require 'active_support/core_ext/object/try'
 
 require 'sanity_checks'
 require 'vagrant-proxmox/plugin'
 require 'vagrant-proxmox/errors'
+require 'vagrant-proxmox/proxmox/connection'
 
 
 module VagrantPlugins
