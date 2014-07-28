@@ -3,7 +3,7 @@ module VagrantPlugins::Proxmox
 	shared_examples 'a rest api call' do |rest_method|
 
 		context 'when an invalid resource is requested' do
-			before { RestClient.stub(rest_method).and_raise RestClient::NotImplemented }
+			before { allow(RestClient).to receive(rest_method).and_raise RestClient::NotImplemented }
 			it 'should raise a connection error' do
 				expect do
 					connection.send rest_method, '/invalid_resource'
@@ -12,7 +12,7 @@ module VagrantPlugins::Proxmox
 		end
 
 		context 'when an internal server error occurs' do
-			before { RestClient.stub(rest_method).and_raise RestClient::InternalServerError }
+			before { allow(RestClient).to receive(rest_method).and_raise RestClient::InternalServerError }
 			it 'should raise a server error' do
 				expect do
 					connection.send rest_method, '/invalid_resource'
@@ -21,7 +21,7 @@ module VagrantPlugins::Proxmox
 		end
 
 		context 'when a network error occurs' do
-			before { RestClient.stub(rest_method).and_raise SocketError }
+			before { allow(RestClient).to receive(rest_method).and_raise SocketError }
 			it 'should raise a connection error' do
 				expect do
 					connection.send rest_method, '/resource'
@@ -30,14 +30,12 @@ module VagrantPlugins::Proxmox
 		end
 
 		context 'when the client is not authorized' do
-			before { RestClient.stub(rest_method).and_raise RestClient::Unauthorized }
+			before { allow(RestClient).to receive(rest_method).and_raise RestClient::Unauthorized }
 			it 'should raise a unauthorized error' do
 				expect do
 					connection.send rest_method, "/resource"
 				end.to raise_error ApiError::UnauthorizedError
 			end
 		end
-
 	end
-
 end

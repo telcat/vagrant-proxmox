@@ -9,23 +9,36 @@ module VagrantPlugins::Proxmox
 
 		context 'the vm is not created on the proxmox server' do
 			it 'should call the appropriate actions and print a ui message that the vm is not created' do
-				Action::ConfigValidate.should be_called
-				Action::IsCreated.should be_called { |env| env[:result] = false }
-				Action::MessageNotCreated.should be_called
-				Action::Provision.should be_omitted
-				Action::SyncFolders.should be_omitted
+				expect(Action::ConfigValidate).to be_called
+				expect(Action::IsCreated).to be_called { |env| env[:result] = false }
+				expect(Action::MessageNotCreated).to be_called
+				expect(Action::Provision).to be_omitted
+				expect(Action::SyncFolders).to be_omitted
 				execute_vagrant_command environment, :provision
 			end
 		end
 
 		context 'the vm exists on the proxmox server' do
 			it 'should call the appropriate actions and provision the vm' do
-				Action::ConfigValidate.should be_called
-				Action::IsCreated.should be_called { |env| env[:result] = true }
-				Action::Provision.should be_called
-				Action::SyncFolders.should be_called
+				expect(Action::ConfigValidate).to be_called
+				expect(Action::IsCreated).to be_called { |env| env[:result] = true }
+				expect(Action::IsStopped).to be_called { |env| env[:result] = false }
+				expect(Action::Provision).to be_called
+				expect(Action::SyncFolders).to be_called
 				execute_vagrant_command environment, :provision
 			end
+		end
+
+		context 'the vm exists on the proxmox server but is not running' do
+
+			it 'should state that the machine is not currently running' do
+				expect(Action::IsCreated).to be_called { |env| env[:result] = true }
+				expect(Action::IsStopped).to be_called { |env| env[:result] = true }
+				expect(Action::MessageNotRunning).to be_called
+				expect(Action::Provision).to be_omitted
+				execute_vagrant_command environment, :provision
+			end
+
 		end
 
 	end

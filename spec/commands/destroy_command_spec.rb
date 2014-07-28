@@ -10,10 +10,10 @@ module VagrantPlugins::Proxmox
 
 		context 'the vm is not created on the proxmox server' do
 			it 'should call the appropriate actions to print a ui message that the vm is not created' do
-				Action::ConnectProxmox.should be_called
-				Action::IsCreated.should be_called { |env| env[:result] = false }
-				Action::MessageNotCreated.should be_called
-				Action::DestroyVm.should be_omitted
+				expect(Action::ConnectProxmox).to be_called
+				expect(Action::IsCreated).to be_called { |env| env[:result] = false }
+				expect(Action::MessageNotCreated).to be_called
+				expect(Action::DestroyVm).to be_omitted
 				execute_vagrant_command environment, :destroy
 			end
 		end
@@ -22,11 +22,11 @@ module VagrantPlugins::Proxmox
 
 			context 'the destroy command is not confirmed' do
 				it 'should call the appropriate actions to print a ui message that the vm will not be destroyed' do
-					Action::ConnectProxmox.should be_called
-					Action::IsCreated.should be_called { |env| env[:result] = true }
-					::Vagrant::Action::Builtin::DestroyConfirm.should be_called { |env| env[:result] = false }
-					::VagrantPlugins::ProviderVirtualBox::Action::MessageWillNotDestroy.should be_called
-					Action::DestroyVm.should be_omitted
+					expect(Action::ConnectProxmox).to be_called
+					expect(Action::IsCreated).to be_called { |env| env[:result] = true }
+					expect(::Vagrant::Action::Builtin::DestroyConfirm).to be_called { |env| env[:result] = false }
+					expect(::VagrantPlugins::ProviderVirtualBox::Action::MessageWillNotDestroy).to be_called
+					expect(Action::DestroyVm).to be_omitted
 					execute_vagrant_command environment, :destroy
 				end
 			end
@@ -34,28 +34,28 @@ module VagrantPlugins::Proxmox
 			context 'the destroy command is confirmed' do
 				context 'the vm is running' do
 					it 'should call the appropriate actions to destroy the vm' do
-						Action::ConnectProxmox.should be_called
-						Action::IsCreated.should be_called { |env| env[:result] = true }
-						::Vagrant::Action::Builtin::DestroyConfirm.should be_called { |env| env[:result] = true }
-						Action::IsStopped.should be_called { |env| env[:result] = false }
-						Action::ShutdownVm.should be_called
-						Action::DestroyVm.should be_called
-						::Vagrant::Action::Builtin::ProvisionerCleanup.should be_called
-						Action::CleanupAfterDestroy.should be_called
+						expect(Action::ConnectProxmox).to be_called
+						expect(Action::IsCreated).to be_called { |env| env[:result] = true }
+						expect(::Vagrant::Action::Builtin::DestroyConfirm).to be_called { |env| env[:result] = true }
+						expect(Action::IsStopped).to be_called { |env| env[:result] = false }
+						expect(Action::ShutdownVm).to be_called
+						expect(Action::DestroyVm).to be_called
+						expect(::Vagrant::Action::Builtin::ProvisionerCleanup).to be_called
+						expect(Action::CleanupAfterDestroy).to be_called
 						execute_vagrant_command environment, :destroy
 					end
 				end
 
 				context 'the vm is stopped' do
 					it 'should call the appropriate actions to destroy the vm' do
-						Action::ConnectProxmox.should be_called
-						Action::IsCreated.should be_called { |env| env[:result] = true }
-						Action::DestroyConfirm.should be_called { |env| env[:result] = true }
-						Action::IsStopped.should be_called { |env| env[:result] = true }
-						Action::DestroyVm.should be_called
-						::Vagrant::Action::Builtin::ProvisionerCleanup.should be_called
-						Action::CleanupAfterDestroy.should be_called
-						Action::ShutdownVm.should be_omitted
+						expect(Action::ConnectProxmox).to be_called
+						expect(Action::IsCreated).to be_called { |env| env[:result] = true }
+						expect(Action::DestroyConfirm).to be_called { |env| env[:result] = true }
+						expect(Action::IsStopped).to be_called { |env| env[:result] = true }
+						expect(Action::DestroyVm).to be_called
+						expect(::Vagrant::Action::Builtin::ProvisionerCleanup).to be_called
+						expect(Action::CleanupAfterDestroy).to be_called
+						expect(Action::ShutdownVm).to be_omitted
 						execute_vagrant_command environment, :destroy
 					end
 				end

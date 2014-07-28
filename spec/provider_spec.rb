@@ -13,10 +13,10 @@ module VagrantPlugins::Proxmox
 
 		describe '#ssh_info', :need_box do
 			it 'should call the appropriate actions and return the ssh info' do
-				Action::ConfigValidate.should be_called
-				Action::ConnectProxmox.should be_called
-				Action::ReadSSHInfo.should be_called { |env| env[:machine_ssh_info] = 'ssh_info'}
-				subject.ssh_info.should == 'ssh_info'
+				expect(Action::ConfigValidate).to be_called
+				expect(Action::ConnectProxmox).to be_called
+				expect(Action::ReadSSHInfo).to be_called { |env| env[:machine_ssh_info] = 'ssh_info'}
+				expect(subject.ssh_info).to eq('ssh_info')
 			end
 		end
 

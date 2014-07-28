@@ -17,8 +17,8 @@ module VagrantPlugins::Proxmox
 		subject(:action) { described_class.new(-> (_) {}, environment) }
 
 		before do
-			connection.stub :get_free_vm_id => 100
-			connection.stub :create_vm => 'OK'
+			allow(connection).to receive_messages :get_free_vm_id => 100
+			allow(connection).to receive_messages :create_vm => 'OK'
 		end
 
 		describe '#call' do
@@ -29,14 +29,14 @@ module VagrantPlugins::Proxmox
 
 				context 'with default config' do
 					specify do
-						connection.should_receive(:create_vm).
+						expect(connection).to receive(:create_vm).
 							with(node: 'localhost',
 									 params: {vmid: 100,
-										hostname: 'box',
+										hostname: 'machine',
 										ostemplate: 'local:vztmpl/template.tgz',
 										password: 'vagrant',
 										memory: 256,
-										description: 'vagrant_test_box'})
+										description: 'vagrant_test_machine'})
 						action.call env
 					end
 				end
@@ -44,30 +44,30 @@ module VagrantPlugins::Proxmox
 				context 'with a specified hostname' do
 					before { env[:machine].config.vm.hostname = 'hostname' }
 					specify do
-						connection.should_receive(:create_vm).
+						expect(connection).to receive(:create_vm).
 							with(node: 'localhost',
 									 params: {vmid: 100,
 										hostname: 'hostname',
 										ostemplate: 'local:vztmpl/template.tgz',
 										password: 'vagrant',
 										memory: 256,
-										description: 'vagrant_test_box'})
+										description: 'vagrant_test_machine'})
 						action.call env
 					end
 				end
 
 				context 'with a specified ip address' do
-					before { env[:machine].config.vm.stub(:networks) { [[:public_network, {ip: '127.0.0.1'}]] } }
+					before { allow(env[:machine].config.vm).to receive(:networks) { [[:public_network, {ip: '127.0.0.1'}]] } }
 					specify do
-						connection.should_receive(:create_vm).
+						expect(connection).to receive(:create_vm).
 							with(node: 'localhost',
 									 params: {vmid: 100,
-										hostname: 'box',
+										hostname: 'machine',
 										ip_address: '127.0.0.1',
 										ostemplate: 'local:vztmpl/template.tgz',
 										password: 'vagrant',
 										memory: 256,
-										description: 'vagrant_test_box'})
+										description: 'vagrant_test_machine'})
 						action.call env
 					end
 				end
@@ -75,18 +75,18 @@ module VagrantPlugins::Proxmox
 			end
 
 			it 'should print a message to the user interface' do
-				env[:ui].should_receive(:info).with 'Creating the virtual machine...'
-				env[:ui].should_receive(:info).with 'Done!'
+				expect(env[:ui]).to receive(:info).with 'Creating the virtual machine...'
+				expect(env[:ui]).to receive(:info).with 'Done!'
 				action.call env
 			end
 
 			it 'should store the node and vmid in env[:machine].id' do
 				action.call env
-				env[:machine].id.should == 'localhost/100'
+				expect(env[:machine].id).to eq('localhost/100')
 			end
 
 			it 'should get a free vm id from connection' do
-				connection.should_receive(:get_free_vm_id)
+				expect(connection).to receive(:get_free_vm_id)
 				action.send :call, env
 			end
 
@@ -94,21 +94,21 @@ module VagrantPlugins::Proxmox
 
 				context 'when the proxmox server replies with an internal server error to the delete_vm call' do
 					it 'should raise a VMCreateError' do
-						connection.stub(:create_vm).and_raise ApiError::ServerError
+						allow(connection).to receive(:create_vm).and_raise ApiError::ServerError
 						expect { action.send :call, env }.to raise_error Errors::VMCreateError
 					end
 				end
 
 				context 'when the proxmox server replies with an internal server error to the task status request' do
 					it 'should raise a VMCreateError' do
-						connection.stub(:create_vm).and_raise ApiError::ServerError
+						allow(connection).to receive(:create_vm).and_raise ApiError::ServerError
 						expect { action.send :call, env }.to raise_error Errors::VMCreateError
 					end
 				end
 
 				context 'when the proxmox server does not reply the task status request with OK' do
 					it 'should raise a VMCreateError' do
-						connection.stub :create_vm => 'create vm error'
+						allow(connection).to receive_messages :create_vm =>  'create vm error'
 						expect { action.send :call, env }.to raise_error Errors::VMCreateError, /create vm error/
 					end
 				end

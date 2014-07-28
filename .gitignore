@@ -4,6 +4,7 @@
 
 # Ignore bundler config and gem cache
 /.bundle
+/bin
 
 # Ignore all logfiles and tempfiles.
 /.vagrant

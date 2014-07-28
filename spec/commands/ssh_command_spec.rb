@@ -9,9 +9,9 @@ module VagrantPlugins::Proxmox
 
 		context 'the vm is not created on the proxmox server' do
 			it 'should call the appropriate actions and print a ui message that the vm is not created' do
-				Action::IsCreated.should be_called { |env| env[:result] = false }
-				Action::MessageNotCreated.should be_called
-				Action::SSHExec.should be_omitted
+				expect(Action::IsCreated).to be_called { |env| env[:result] = false }
+				expect(Action::MessageNotCreated).to be_called
+				expect(Action::SSHExec).to be_omitted
 				execute_vagrant_command environment, :ssh
 			end
 		end
@@ -19,8 +19,21 @@ module VagrantPlugins::Proxmox
 		context 'the vm exists on the proxmox server' do
 
 			it 'should call the appropriate actions to open a ssh connection' do
-				Action::IsCreated.should be_called { |env| env[:result] = true }
-				Action::SSHExec.should be_called
+				expect(Action::IsCreated).to be_called { |env| env[:result] = true }
+				expect(Action::IsStopped).to be_called { |env| env[:result] = false }
+				expect(Action::SSHExec).to be_called
+				execute_vagrant_command environment, :ssh
+			end
+
+		end
+
+		context 'the vm exists on the proxmox server but is not running' do
+
+			it 'should state that the machine is not currently running' do
+				expect(Action::IsCreated).to be_called { |env| env[:result] = true }
+				expect(Action::IsStopped).to be_called { |env| env[:result] = true }
+				expect(Action::MessageNotRunning).to be_called
+				expect(Action::SSHExec).to be_omitted
 				execute_vagrant_command environment, :ssh
 			end
 

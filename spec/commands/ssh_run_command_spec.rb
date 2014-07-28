@@ -10,19 +10,32 @@ module VagrantPlugins::Proxmox
 
 		context 'the vm is not created on the proxmox server' do
 			it 'should call the appropriate actions and print a ui message that the vm is not created' do
-				Action::IsCreated.should be_called { |env| env[:result] = false }
-				Action::MessageNotCreated.should be_called
-				Action::SSHRun.should be_omitted
+				expect(Action::IsCreated).to be_called { |env| env[:result] = false }
+				expect(Action::MessageNotCreated).to be_called
+				expect(Action::SSHRun).to be_omitted
 				execute_vagrant_command environment, :ssh, '--command', 'foo'
 			end
 		end
 
 		context 'the vm exists on the proxmox server' do
-			before { env[:machine].stub(:ssh_info) { {host: '127.0.0.1', port: 22, username: 'vagrant', private_key_path: 'key'} } }
+			before { allow(env[:machine]).to receive(:ssh_info) { {host: '127.0.0.1', port: 22, username: 'vagrant', private_key_path: 'key'} } }
 
 			it 'should call the appropriate actions to execute a command via ssh on the vm' do
-				Action::IsCreated.should be_called { |env| env[:result] = true }
-				Action::SSHRun.should be_called
+				expect(Action::IsCreated).to be_called { |env| env[:result] = true }
+				expect(Action::IsStopped).to be_called { |env| env[:result] = false }
+				expect(Action::SSHRun).to be_called
+				execute_vagrant_command environment, :ssh, '--command', 'foo'
+			end
+		end
+
+		context 'the vm exists on the proxmox server and is not running' do
+			before { allow(env[:machine]).to receive(:ssh_info) { {host: '127.0.0.1', port: 22, username: 'vagrant', private_key_path: 'key'} } }
+
+			it 'should call the appropriate actions to execute a command via ssh on the vm' do
+				expect(Action::IsCreated).to be_called { |env| env[:result] = true }
+				expect(Action::IsStopped).to be_called { |env| env[:result] = true }
+				expect(Action::MessageNotRunning).to be_called
+				expect(Action::SSHRun).to be_omitted
 				execute_vagrant_command environment, :ssh, '--command', 'foo'
 			end
 		end

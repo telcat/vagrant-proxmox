@@ -15,15 +15,15 @@ describe VagrantPlugins::Proxmox::Action::ReadSSHInfo do
 		context 'when no ip address is configured' do
 			it 'should write no ssh info into env[:machine_ssh_info]' do
 				action.call env
-				env[:machine_ssh_info].should == nil
+				expect(env[:machine_ssh_info]).to eq(nil)
 			end
 		end
 
 		context 'when an ip address is configured' do
-			before { env[:machine].config.vm.stub(:networks) { [[:public_network, {ip: '127.0.0.1'}]] } }
+			before { allow(env[:machine].config.vm).to receive(:networks) { [[:public_network, {ip: '127.0.0.1'}]] } }
 			it 'should write the ssh info into env[:machine_ssh_info]' do
 				action.call env
-				env[:machine_ssh_info].should == {host: '127.0.0.1', port: 22}
+				expect(env[:machine_ssh_info]).to eq({host: '127.0.0.1', port: 22})
 			end
 		end
 

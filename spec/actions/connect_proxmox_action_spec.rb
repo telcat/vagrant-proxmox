@@ -25,31 +25,31 @@ module VagrantPlugins::Proxmox
 				env[:machine].provider_config.vm_id_range = 500..555
 				env[:machine].provider_config.task_timeout = 123
 				env[:machine].provider_config.task_status_check_interval = 5
-				Connection.any_instance.stub :login
+				allow_any_instance_of(Connection).to receive :login
 			end
 
 			it_behaves_like 'a proxmox action call'
 
 			it 'should store a connection object in env[:proxmox_connection]' do
 				action.call env
-				connection.api_url.should == api_url
+				expect(connection.api_url).to eq(api_url)
 			end
 
 			describe 'sets the connection configuration parameters' do
 				before { action.call env }
-				specify { connection.vm_id_range.should == (500..555) }
-				specify { connection.task_timeout.should == 123 }
-				specify { connection.task_status_check_interval.should == 5 }
+				specify { expect(connection.vm_id_range).to eq(500..555) }
+				specify { expect(connection.task_timeout).to eq(123) }
+				specify { expect(connection.task_status_check_interval).to eq(5) }
 			end
 
 			it 'should call the login function with credentials from configuration' do
-				Connection.any_instance.should_receive(:login).with username: username, password: password
+				expect_any_instance_of(Connection).to receive(:login).with username: username, password: password
 				action.call env
 			end
 
 			context 'when the server communication fails' do
 
-				before { Connection.any_instance.stub(:login).and_raise ApiError::InvalidCredentials }
+				before { allow_any_instance_of(Connection).to receive(:login).and_raise ApiError::InvalidCredentials }
 
 				it 'should raise an error' do
 					expect { action.call env }.to raise_error Errors::CommunicationError

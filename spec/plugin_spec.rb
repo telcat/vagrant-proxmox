@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe 'Vagrant Proxmox plugin' do
 
-	specify { Vagrant.should have_plugin 'Proxmox' }
+	specify { expect(Vagrant).to have_plugin 'Proxmox' }
 
 	describe 'when vagrant log level is set in ENV[VAGRANT_LOG]' do
 		before { ENV['VAGRANT_LOG'] = 'DEBUG' }

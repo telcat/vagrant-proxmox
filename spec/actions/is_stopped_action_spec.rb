@@ -10,24 +10,24 @@ describe VagrantPlugins::Proxmox::Action::IsStopped do
 
 	describe '#call' do
 
-		before { env[:machine].provider.stub :state => Vagrant::MachineState.new(nil, nil, nil) }
+		before { allow(env[:machine].provider).to receive_messages :state => Vagrant::MachineState.new(nil, nil, nil) }
 
 		it_behaves_like 'a proxmox action call'
 
 		context 'when the machine is stopped' do
 			before do
-				env[:machine].provider.stub :state => Vagrant::MachineState.new(:stopped, '', '')
+				allow(env[:machine].provider).to receive_messages :state => Vagrant::MachineState.new(:stopped, '', '')
 				action.call env
 			end
-			specify { env[:result].should == true }
+			specify { expect(env[:result]).to eq(true) }
 		end
 
 		context 'when the machine is running' do
 			before do
-				env[:machine].provider.stub :state => Vagrant::MachineState.new(:running, '', '')
+				allow(env[:machine].provider).to receive_messages :state => Vagrant::MachineState.new(:running, '', '')
 				action.call env
 			end
-			specify { env[:result].should == false }
+			specify { expect(env[:result]).to eq(false) }
 		end
 	end
 

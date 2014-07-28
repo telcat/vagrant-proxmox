@@ -9,10 +9,11 @@ Vagrant.configure('2') do |config|
 		proxmox.vm_memory = 256
 		proxmox.task_timeout = 30
 		proxmox.task_status_check_interval = 1
-
 	end
 
 	config.vm.define :machine, primary: true do |machine|
 		machine.vm.box = 'b681e2bc-617b-4b35-94fa-edc92e1071b8'
+		machine.vm.network :public_network, ip: '172.16.100.1'
+		machine.vm.provision 'shell', path: 'dummy_box/provision.sh'
 	end
 end

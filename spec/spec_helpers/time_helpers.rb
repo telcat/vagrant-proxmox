@@ -81,7 +81,7 @@ RSpec::Matchers.define :have_elapsed do |expected|
 	match do
 		Timecop.has_travelled? expected
 	end
-	failure_message_for_should do
+	failure_message do
 		result = expected.clone_with_value Time.now - Timecop.frozen_time
 		"expected current time to be #{expected} later, but #{result < expected ? 'only' : 'already'} #{result} elapsed"
 	end

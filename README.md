@@ -1,6 +1,6 @@
 # Vagrant Proxmox Provider
 
-This is a [Vagrant](http://www.vagrantup.com) 1.4+ plugin that adds a
+This is a [Vagrant](http://www.vagrantup.com) 1.5+ plugin that adds a
 [Proxmox](http://proxmox.com/) provider to Vagrant, allowing Vagrant to manage
 and provision Proxmox virtual machines.
 
@@ -42,7 +42,7 @@ Then create a Vagrantfile that looks like the following:
 Vagrant.configure('2') do |config|
 
 	config.vm.provider :proxmox do |proxmox|
-		proxmox.endpoint = 'https://your.proxmox.server/api2/json'
+		proxmox.endpoint = 'https://proxmox.example.com/api2/json'
 		proxmox.user_name = 'vagrant'
 		proxmox.password = 'password'
 		proxmox.vm_id_range = 900..910

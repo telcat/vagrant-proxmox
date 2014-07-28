@@ -60,6 +60,9 @@ en:
         Unable to shutdown the virtual machine!
 
         Cause: %{proxmox_exit_status}
+      vm_not_running: |-
+        VM must be running to execute this command. Run `vagrant up`
+        to start the virtual machine.
     not_created: 'The virtual machine is not created on the server!'
     rsync_folder: |-
           Rsyncing folder: %{hostpath} => %{guestpath}

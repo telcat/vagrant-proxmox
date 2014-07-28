@@ -25,3 +25,33 @@ task release: [:build, :spec_coverage] do
 	GeminaboxClient.new(rake_config['geminabox']['url']).push "#{gemspec.name}-#{gemspec.version}.gem", overwrite: true
 	puts "Gem #{gemspec.name} pushed to #{rake_config['geminabox']['url']}"
 end
+
+
+namespace :test do
+
+	desc 'Run all tests (enable coverage with COVERAGE=y)'
+	task :all do
+		Rake::Task['test:rspec'].invoke
+		Rake::Task['test:cucumber'].invoke
+	end
+
+	desc 'Run all rspec tests (enable coverage with COVERAGE=y)'
+	task :rspec do
+		require 'rspec/core/rake_task'
+		RSpec::Core::RakeTask.new(:_specs) do |task|
+			task.verbose = false
+		end
+		Rake::Task['_specs'].invoke
+	end
+
+	desc 'Run all cucumber tests (enable coverage with COVERAGE=y)'
+	task :cucumber do
+		require 'cucumber/rake/task'
+
+		Cucumber::Rake::Task.new(:_features) do |task|
+			task.cucumber_opts = '--quiet --format progress --require features features'
+		end
+		Rake::Task['_features'].invoke
+	end
+
+end

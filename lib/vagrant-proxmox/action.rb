@@ -44,12 +44,18 @@ module VagrantPlugins
 			def self.action_provision
 				Vagrant::Action::Builder.new.tap do |b|
 					b.use ConfigValidate
-					b.use Call, IsCreated do |env, b2|
-						if env[:result]
-							b2.use Provision
-							b2.use SyncFolders
+					b.use Call, IsCreated do |env1, b1|
+						if env1[:result]
+							b1.use Call, IsStopped do |env2, b2|
+								if env2[:result]
+									b2.use MessageNotRunning
+								else
+									b2.use Provision
+									b2.use SyncFolders
+								end
+							end
 						else
-							b2.use MessageNotCreated
+							b1.use MessageNotCreated
 						end
 					end
 				end
@@ -112,11 +118,17 @@ module VagrantPlugins
 			def self.action_ssh
 				Vagrant::Action::Builder.new.tap do |b|
 					b.use ConfigValidate
-					b.use Call, IsCreated do |env, b2|
-						if env[:result]
-							b2.use SSHExec
+					b.use Call, IsCreated do |env1, b1|
+						if env1[:result]
+							b1.use Call, IsStopped do |env2, b2|
+								if env2[:result]
+									b2.use MessageNotRunning
+								else
+									b2.use SSHExec
+								end
+							end
 						else
-							b2.use MessageNotCreated
+							b1.use MessageNotCreated
 						end
 					end
 				end
@@ -125,11 +137,17 @@ module VagrantPlugins
 			def self.action_ssh_run
 				Vagrant::Action::Builder.new.tap do |b|
 					b.use ConfigValidate
-					b.use Call, IsCreated do |env, b2|
-						if env[:result]
-							b2.use SSHRun
+					b.use Call, IsCreated do |env1, b1|
+						if env1[:result]
+							b1.use Call, IsStopped do |env2, b2|
+								if env2[:result]
+									b2.use MessageNotRunning
+								else
+									b2.use SSHRun
+								end
+							end
 						else
-							b2.use MessageNotCreated
+							b1.use MessageNotCreated
 						end
 					end
 				end
@@ -145,6 +163,7 @@ module VagrantPlugins
 			autoload :MessageAlreadyRunning, action_root.join('message_already_running')
 			autoload :MessageAlreadyStopped, action_root.join('message_already_stopped')
 			autoload :MessageNotCreated, action_root.join('message_not_created')
+			autoload :MessageNotRunning, action_root.join('message_not_running')
 			autoload :CreateVm, action_root.join('create_vm')
 			autoload :StartVm, action_root.join('start_vm')
 			autoload :StopVm, action_root.join('stop_vm')

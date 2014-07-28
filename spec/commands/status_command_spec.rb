@@ -8,8 +8,8 @@ module VagrantPlugins::Proxmox
 		let(:ui) { double('ui').as_null_object }
 
 		specify do
-			Action::ConnectProxmox.should be_called
-			Action::ReadState.should be_called { |env| env[:machine_state_id] = :stopped }
+			expect(Action::ConnectProxmox).to be_called
+			expect(Action::ReadState).to be_called { |env| env[:machine_state_id] = :stopped }
 			expect(ui).to receive(:info).with /stopped \(proxmox\)/, anything
 			execute_vagrant_command environment, :status
 		end
