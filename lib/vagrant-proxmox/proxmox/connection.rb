@@ -109,6 +109,19 @@ module VagrantPlugins
 				free_vm_ids.empty? ? raise(VagrantPlugins::Proxmox::Errors::NoVmIdAvailable) : free_vm_ids.first
 			end
 
+			def upload_file(file, content_type:, node:, storage:)
+				unless is_file_in_storage? filename:file, node:node, storage:storage
+					res = post "/nodes/#{node}/storage/#{storage}/upload", content: content_type,
+													filename: File.new(file, 'rb'), node: node, storage: storage
+					wait_for_completion task_response: res, node: node, timeout_message: 'vagrant_proxmox.errors.upload_timeout'
+				end
+			end
+
+			def list_storage_files(node:, storage:)
+				res = get "/nodes/#{node}/storage/#{storage}/content"
+				res[:data].map { |e| e[:volid] }
+			end
+
 			private
 			def get_task_exitstatus task_upid, node
 				response = get "/nodes/#{node}/tasks/#{task_upid}/status"
@@ -132,9 +145,7 @@ module VagrantPlugins
 			private
 			def delete path
 				begin
-					response = RestClient.delete "#{api_url}#{path}",
-																			 {CSRFPreventionToken: csrf_token,
-																				cookies: {PVEAuthCookie: ticket}}
+					response = RestClient.delete "#{api_url}#{path}", headers
 					JSON.parse response.to_s, symbolize_names: true
 				rescue RestClient::Unauthorized
 					raise ApiError::UnauthorizedError
@@ -150,7 +161,6 @@ module VagrantPlugins
 			private
 			def post path, params = {}
 				begin
-					headers = ticket.nil? ? {} : {CSRFPreventionToken: csrf_token, cookies: {PVEAuthCookie: ticket}}
 					response = RestClient.post "#{api_url}#{path}", params, headers
 					JSON.parse response.to_s, symbolize_names: true
 				rescue RestClient::Unauthorized
@@ -164,6 +174,15 @@ module VagrantPlugins
 				end
 			end
 
+			private
+			def headers
+				ticket.nil? ? {} : {CSRFPreventionToken: csrf_token, cookies: {PVEAuthCookie: ticket}}
+			end
+
+			private
+			def is_file_in_storage?(filename:, node:, storage:)
+				(list_storage_files node: node, storage: storage).find { |f| f =~ /#{File.basename filename}/ }
+			end
 		end
 	end
 end

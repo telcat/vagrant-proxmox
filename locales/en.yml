@@ -15,7 +15,7 @@ en:
       destroy_vm_timeout: |-
         Destroying the vm on the proxmox server timed out.
       no_endpoint_specified: 'No endpoint specified.'
-      no_os_template_specified: 'No os_template specified.'
+      no_os_template_or_template_file_specified: 'No os_template or template_file specified.'
       no_password_specified: 'No password specified.'
       no_user_name_specified: 'No user_name specified.'
       no_vm_id_available: |-
@@ -63,6 +63,9 @@ en:
       vm_not_running: |-
         VM must be running to execute this command. Run `vagrant up`
         to start the virtual machine.
+      file_not_found: "File for upload not found"
+      upload_server_error: "Error during upload"
+      ssh_error: Unable to establish an ssh connection to the virtual machine...
     not_created: 'The virtual machine is not created on the server!'
     rsync_folder: |-
           Rsyncing folder: %{hostpath} => %{guestpath}

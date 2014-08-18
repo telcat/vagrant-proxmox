@@ -16,6 +16,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" scope="PROVIDED" name="activesupport (v4.0.8, RVM: ruby-2.1.1 [vagrant-proxmox]) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="addressable (v2.3.6, RVM: ruby-2.1.1 [vagrant-proxmox]) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="awesome_print (v1.2.0, RVM: ruby-2.1.1 [vagrant-proxmox]) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="builder (v3.2.2, RVM: ruby-2.1.1 [vagrant-proxmox]) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="bundler (v1.6.0.rc2, RVM: ruby-2.1.1 [vagrant-proxmox]) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="celluloid (v0.15.2, RVM: ruby-2.1.1 [vagrant-proxmox]) [gem]" level="application" />

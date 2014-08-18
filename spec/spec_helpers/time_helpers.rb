@@ -1,3 +1,5 @@
+require 'timecop'
+
 class Fixnum
 
 	def self.time_interval_converter unit, factor

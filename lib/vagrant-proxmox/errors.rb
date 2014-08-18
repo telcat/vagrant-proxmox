@@ -50,6 +50,10 @@ module VagrantPlugins
 				error_key :rsync_error
 			end
 
+			class SSHError < VagrantProxmoxError
+				error_key :ssh_error
+			end
+
 		end
 	end
 end

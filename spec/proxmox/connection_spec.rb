@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'proxmox/rest_call_shared'
+require 'tempfile'
 
 module VagrantPlugins::Proxmox
 
@@ -10,10 +11,12 @@ module VagrantPlugins::Proxmox
 		let(:password) { 'password' }
 		let(:ticket) { 'valid ticket' }
 		let(:csrf_token) { 'csrf prevention token' }
-		let(:task_upid) { 'UPID:localhost:0000F6ED:00F8E25F:5268CD3B:vzcreate:100:vagrant@pve:' }
+		let(:task_upid) { 'UPID:localhost:0000F6ED:00F8E25F:5268CD3B:task_type:100:vagrant@pve:' }
 		let(:task_response) { {data: task_upid} }
-		let(:params) { { } }
+		let(:params) { {} }
 		let(:connection_opts) { {} }
+		let(:task_timeout) { 40 }
+		let(:task_status_check_interval) { 5 }
 
 		subject(:connection) { Connection.new api_url, connection_opts }
 
@@ -29,24 +32,24 @@ module VagrantPlugins::Proxmox
 		describe '#initialize' do
 
 			describe '#api_url' do
-			  subject { super().api_url }
-			  it { is_expected.to eq(api_url) }
+				subject { super().api_url }
+				it { is_expected.to eq(api_url) }
 			end
 
 			context 'with default values' do
 				describe '#vm_id_range' do
-				  subject { super().vm_id_range }
-				  it { is_expected.to eq(900..999) }
+					subject { super().vm_id_range }
+					it { is_expected.to eq(900..999) }
 				end
 
 				describe '#task_timeout' do
-				  subject { super().task_timeout }
-				  it { is_expected.to eq(60) }
+					subject { super().task_timeout }
+					it { is_expected.to eq(60) }
 				end
 
 				describe '#task_status_check_interval' do
-				  subject { super().task_status_check_interval }
-				  it { is_expected.to eq(2) }
+					subject { super().task_status_check_interval }
+					it { is_expected.to eq(2) }
 				end
 			end
 
@@ -54,18 +57,18 @@ module VagrantPlugins::Proxmox
 				let(:connection_opts) { {vm_id_range: (500..599), task_timeout: 90, task_status_check_interval: 3} }
 
 				describe '#vm_id_range' do
-				  subject { super().vm_id_range }
-				  it { is_expected.to eq(500..599) }
+					subject { super().vm_id_range }
+					it { is_expected.to eq(500..599) }
 				end
 
 				describe '#task_timeout' do
-				  subject { super().task_timeout }
-				  it { is_expected.to eq(90) }
+					subject { super().task_timeout }
+					it { is_expected.to eq(90) }
 				end
 
 				describe '#task_status_check_interval' do
-				  subject { super().task_status_check_interval }
-				  it { is_expected.to eq(3) }
+					subject { super().task_status_check_interval }
+					it { is_expected.to eq(3) }
 				end
 			end
 		end
@@ -204,9 +207,9 @@ module VagrantPlugins::Proxmox
 				before do
 					Timecop.freeze
 					allow(connection).to receive_messages :get_task_exitstatus => nil
-					allow(connection).to receive_messages :task_timeout => 40
-					allow(connection).to receive_messages :task_status_check_interval => 5
-					allow(connection).to receive(:sleep) { |duration| Timecop.travel(Time.now + 5) }
+					allow(connection).to receive_messages :task_timeout => task_timeout
+					allow(connection).to receive_messages :task_status_check_interval => task_status_check_interval
+					allow(connection).to receive(:sleep) { |duration| Timecop.travel(Time.now + duration) }
 				end
 
 				after do
@@ -219,11 +222,12 @@ module VagrantPlugins::Proxmox
 
 				it 'should wait out the timeout' do
 					connection.send(:wait_for_completion, task_response: task_response, node: 'localhost', timeout_message: '') rescue nil
-					expect(Time).to have_elapsed 40.seconds
+					expect(Time).to have_elapsed task_timeout.seconds
 				end
 
-				it 'should check the task status many times' do
-					expect(connection).to receive(:get_task_exitstatus).exactly(9).times
+				it 'should check the task status a given number of times' do
+					task_iterations = task_timeout / task_status_check_interval + 1
+					expect(connection).to receive(:get_task_exitstatus).exactly(task_iterations).times
 					connection.send(:wait_for_completion, task_response: task_response, node: 'localhost', timeout_message: '') rescue nil
 				end
 
@@ -235,7 +239,7 @@ module VagrantPlugins::Proxmox
 
 			it 'should request the task state from the proxmox server' do
 				expect(RestClient).to receive(:get).with("#{api_url}/nodes/localhost/tasks/#{task_response}/status", anything).
-					and_return({data: {}}.to_json)
+																and_return({data: {}}.to_json)
 				connection.send(:get_task_exitstatus, task_response, 'localhost')
 			end
 
@@ -253,7 +257,6 @@ module VagrantPlugins::Proxmox
 				end
 			end
 		end
-
 
 		describe '#delete_vm' do
 
@@ -325,7 +328,6 @@ module VagrantPlugins::Proxmox
 			end
 		end
 
-
 		describe '#create_vm' do
 
 			before do
@@ -388,7 +390,6 @@ module VagrantPlugins::Proxmox
 			end
 		end
 
-
 		describe '#start_vm' do
 
 			before do
@@ -410,7 +411,6 @@ module VagrantPlugins::Proxmox
 				expect(connection.start_vm(node: 'localhost', vm_id: '100')).to eq('OK')
 			end
 		end
-
 
 		describe '#stop_vm' do
 
@@ -434,7 +434,6 @@ module VagrantPlugins::Proxmox
 			end
 		end
 
-
 		describe '#shutdown_vm' do
 
 			before do
@@ -454,6 +453,58 @@ module VagrantPlugins::Proxmox
 
 			it 'should return the task exit status' do
 				expect(connection.shutdown_vm(node: 'localhost', vm_id: '100')).to eq('OK')
+			end
+		end
+
+		describe '#upload_file' do
+
+			let (:file) { '/my/dir/template.tar.gz' }
+			let (:storage_file_list) { [] }
+
+			before do
+				allow(connection).to receive(:post)
+				allow(File).to receive(:new).with(file, anything).and_return file
+				allow(RestClient).to receive(:get).with("#{api_url}/nodes/localhost/storage/local/content", anything()).
+															 and_return(({data: storage_file_list}).to_json)
+				allow(connection).to receive_messages :wait_for_completion => 'OK'
+			end
+
+			it 'should call post with the correct parameters' do
+				expect(connection).to receive(:post).with('/nodes/localhost/storage/local/upload',
+																									{:content => 'vztmpl', :filename => file, :node => 'localhost', :storage => 'local'})
+				connection.upload_file file, content_type: 'vztmpl', node: 'localhost', storage: 'local'
+			end
+
+			it 'waits for completion of the server task' do
+				expect(connection).to receive(:wait_for_completion)
+				connection.upload_file file, content_type: 'vztmpl', node: 'localhost', storage: 'local'
+			end
+
+			it 'should return the task exit status' do
+				expect(connection.upload_file file, content_type: 'vztmpl', node: 'localhost', storage: 'local').to eq('OK')
+			end
+
+			context 'when the template file already exists in storage of the proxmox node' do
+
+				let (:storage_file_list) { [{volid: 'local:vztmpl/template.tar.gz'}] }
+
+				it 'should not upload the template file' do
+					expect(connection).not_to receive(:post).with('/nodes/localhost/storage/local/upload', anything())
+					connection.upload_file file, content_type: 'vztmpl', node: 'localhost', storage: 'local'
+				end
+			end
+
+		end
+
+		describe '#list_storage_files' do
+			before do
+				expect(RestClient).to receive(:get).with("#{api_url}/nodes/node1/storage/local/content", anything()).
+																and_return(({data: [{volid: 'local:vztmpl/mytemplate.tar.gz'}]}).to_json)
+			end
+
+			it 'should return a list of the content of a storage' do
+				res = connection.list_storage_files node: 'node1', storage: 'local'
+				expect(res).to eq(['local:vztmpl/mytemplate.tar.gz'])
 			end
 		end
 	end

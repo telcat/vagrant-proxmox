@@ -25,6 +25,7 @@ Gem::Specification.new do |spec|
 	spec.add_development_dependency 'timecop', '~>0.7.1'
 	spec.add_development_dependency 'cucumber', '~>1.3.15'
 	spec.add_development_dependency 'webmock', '~> 1.18.0'
+	spec.add_development_dependency 'awesome_print', '~> 1.2.0'
 
 	spec.files = Dir.glob('lib/**/*.rb') + Dir.glob('locales/**/*.yml')
 	spec.test_files = Dir.glob 'spec/**/*.rb'

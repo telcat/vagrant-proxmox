@@ -1,1 +1,2 @@
-default: --format progress
+default: --format progress --tags ~@pending
+pending: --format progress --tags @pending --dry-run

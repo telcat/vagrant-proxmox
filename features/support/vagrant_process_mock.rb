@@ -17,6 +17,13 @@ module Vagrant
 end
 
 class CommunicatorMock
+
+	@ssh_enabled = true
+
+	class << self
+		attr_accessor :ssh_enabled
+	end
+
 	def sudo command, opts=nil, &block
 		VagrantProcessMock.check_call command, :remote
 	end
@@ -29,7 +36,7 @@ class CommunicatorMock
 	end
 
 	def ready?
-		true
+		CommunicatorMock.ssh_enabled
 	end
 end
 

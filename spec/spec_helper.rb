@@ -15,7 +15,6 @@ end
 require 'vagrant-proxmox'
 require 'spec_helpers/common_helpers'
 require 'active_support/core_ext/string'
-require 'timecop'
 require 'spec_helpers/time_helpers'
 
 RSpec.configure do |config|

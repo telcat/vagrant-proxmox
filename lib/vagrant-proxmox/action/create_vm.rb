@@ -14,7 +14,8 @@ module VagrantPlugins
 				def call env
 					env[:ui].info I18n.t('vagrant_proxmox.creating_vm')
 					config = env[:machine].provider_config
-					node = env[:proxmox_nodes].sample
+
+					node = env[:proxmox_selected_node]
 					vm_id = nil
 
 					begin

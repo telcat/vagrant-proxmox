@@ -19,3 +19,12 @@ Feature: VM Startup
     When I run "vagrant up"
     Then the machine is now running
     And I should see "Creating the virtual machine..."
+
+  @timecop
+  Scenario: The virtual machine is not reachable by ssh after startup
+    Given a proxmox virtual machine exists
+    And it is stopped
+    And it won't response to ssh once it's started
+    When I run "vagrant up --provider=proxmox"
+    Then 60 seconds should have passed
+    And I should see "Unable to establish an ssh connection to the virtual machine..."

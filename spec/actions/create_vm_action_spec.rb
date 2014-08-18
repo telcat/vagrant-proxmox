@@ -8,7 +8,7 @@ module VagrantPlugins::Proxmox
 		let(:environment) { Vagrant::Environment.new vagrantfile_name: 'dummy_box/Vagrantfile' }
 		let(:connection) { Connection.new 'https://your.proxmox.server/api2/json' }
 		let(:env) { {machine: environment.machine(environment.primary_machine_name, :proxmox),
-								 proxmox_nodes: ['localhost'],
+								 proxmox_selected_node: 'localhost',
 								 ui: double('ui').as_null_object,
 								 proxmox_connection: connection} }
 		let(:app) { double('app').as_null_object }
@@ -30,13 +30,13 @@ module VagrantPlugins::Proxmox
 				context 'with default config' do
 					specify do
 						expect(connection).to receive(:create_vm).
-							with(node: 'localhost',
-									 params: {vmid: 100,
-										hostname: 'machine',
-										ostemplate: 'local:vztmpl/template.tgz',
-										password: 'vagrant',
-										memory: 256,
-										description: 'vagrant_test_machine'})
+																		with(node: 'localhost',
+																				 params: {vmid: 100,
+																									hostname: 'machine',
+																									ostemplate: 'local:vztmpl/template.tar.gz',
+																									password: 'vagrant',
+																									memory: 256,
+																									description: 'vagrant_test_machine'})
 						action.call env
 					end
 				end
@@ -45,13 +45,13 @@ module VagrantPlugins::Proxmox
 					before { env[:machine].config.vm.hostname = 'hostname' }
 					specify do
 						expect(connection).to receive(:create_vm).
-							with(node: 'localhost',
-									 params: {vmid: 100,
-										hostname: 'hostname',
-										ostemplate: 'local:vztmpl/template.tgz',
-										password: 'vagrant',
-										memory: 256,
-										description: 'vagrant_test_machine'})
+																		with(node: 'localhost',
+																				 params: {vmid: 100,
+																									hostname: 'hostname',
+																									ostemplate: 'local:vztmpl/template.tar.gz',
+																									password: 'vagrant',
+																									memory: 256,
+																									description: 'vagrant_test_machine'})
 						action.call env
 					end
 				end
@@ -60,18 +60,17 @@ module VagrantPlugins::Proxmox
 					before { allow(env[:machine].config.vm).to receive(:networks) { [[:public_network, {ip: '127.0.0.1'}]] } }
 					specify do
 						expect(connection).to receive(:create_vm).
-							with(node: 'localhost',
-									 params: {vmid: 100,
-										hostname: 'machine',
-										ip_address: '127.0.0.1',
-										ostemplate: 'local:vztmpl/template.tgz',
-										password: 'vagrant',
-										memory: 256,
-										description: 'vagrant_test_machine'})
+																		with(node: 'localhost',
+																				 params: {vmid: 100,
+																									hostname: 'machine',
+																									ip_address: '127.0.0.1',
+																									ostemplate: 'local:vztmpl/template.tar.gz',
+																									password: 'vagrant',
+																									memory: 256,
+																									description: 'vagrant_test_machine'})
 						action.call env
 					end
 				end
-
 			end
 
 			it 'should print a message to the user interface' do
@@ -108,7 +107,7 @@ module VagrantPlugins::Proxmox
 
 				context 'when the proxmox server does not reply the task status request with OK' do
 					it 'should raise a VMCreateError' do
-						allow(connection).to receive_messages :create_vm =>  'create vm error'
+						allow(connection).to receive_messages :create_vm => 'create vm error'
 						expect { action.send :call, env }.to raise_error Errors::VMCreateError, /create vm error/
 					end
 				end

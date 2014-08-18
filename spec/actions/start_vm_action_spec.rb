@@ -10,6 +10,9 @@ module VagrantPlugins::Proxmox
 		let(:env) { {machine: environment.machine(environment.primary_machine_name, :proxmox),
 								 ui: double('ui').as_null_object,
 								 proxmox_connection: connection} }
+		let(:ssh_reachable) { true }
+		let(:ssh_timeout) { 60 }
+		let(:ssh_status_check_interval) { 5 }
 
 		subject(:action) { described_class.new(-> (_) {}, environment) }
 
@@ -18,7 +21,7 @@ module VagrantPlugins::Proxmox
 			before do
 				env[:machine].id = 'localhost/100'
 				allow(connection).to receive_messages :start_vm => 'OK'
-				allow(env[:machine].communicate).to receive_messages :ready? => true
+				allow(env[:machine].communicate).to receive_messages :ready? => ssh_reachable
 			end
 
 			it_behaves_like 'a proxmox action call'
@@ -38,7 +41,7 @@ module VagrantPlugins::Proxmox
 
 			it 'should periodically call env[:machine].communicate.ready? to check for ssh access' do
 				expect(env[:machine].communicate).to receive(:ready?).and_return false
-				expect(subject).to receive(:sleep).with 1
+				expect(subject).to receive(:sleep).with ssh_status_check_interval
 				expect(env[:machine].communicate).to receive(:ready?).and_return true
 				action.call env
 			end
@@ -61,15 +64,38 @@ module VagrantPlugins::Proxmox
 
 				context 'when the proxmox server does not reply the task status request with OK' do
 					it 'should raise a VMStartError' do
-						allow(connection).to receive_messages :start_vm  => 'start vm error'
+						allow(connection).to receive_messages :start_vm => 'start vm error'
 						expect { action.send :call, env }.to raise_error Errors::VMStartError, /start vm error/
 					end
 				end
 
 			end
 
+			context 'when no ssh connection can be established after startup' do
+
+				let(:ssh_reachable) { false }
+
+				before do
+					allow(action).to receive(:sleep) { |duration| Timecop.travel(Time.now + duration) }
+					Timecop.freeze
+				end
+
+				after do
+					Timecop.return
+				end
+
+				it 'should wait the default timeout' do
+					begin
+						action.call env
+					rescue Errors::SSHError
+					end
+					expect(Time).to have_elapsed ssh_timeout.seconds
+				end
+
+				it 'should raise an ssh error' do
+					expect { action.send :call, env }.to raise_error Errors::SSHError, /Unable to establish an ssh connection/
+				end
+			end
 		end
-
 	end
-
 end

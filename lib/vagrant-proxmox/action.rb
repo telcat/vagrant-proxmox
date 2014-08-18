@@ -32,10 +32,19 @@ module VagrantPlugins
 							end
 						else
 							b1.use GetNodeList
+							b1.use SelectNode
 							b1.use Provision
-							b1.use CreateVm
-							b1.use StartVm
-							b1.use SyncFolders
+							b1.use Call, UploadTemplateFile do |env2, b2|
+								if env2[:result] == :ok
+									b2.use CreateVm
+									b2.use StartVm
+									b2.use SyncFolders
+								elsif env2[:result] == :file_not_found
+									b2.use MessageFileNotFound
+								elsif env2[:result] == :server_upload_error
+									b2.use MessageUploadServerError
+								end
+							end
 						end
 					end
 				end
@@ -157,6 +166,7 @@ module VagrantPlugins
 			autoload :ProxmoxAction, action_root.join('proxmox_action')
 			autoload :ConnectProxmox, action_root.join('connect_proxmox')
 			autoload :GetNodeList, action_root.join('get_node_list')
+			autoload :SelectNode, action_root.join('select_node')
 			autoload :ReadState, action_root.join('read_state')
 			autoload :IsCreated, action_root.join('is_created')
 			autoload :IsStopped, action_root.join('is_stopped')
@@ -164,6 +174,8 @@ module VagrantPlugins
 			autoload :MessageAlreadyStopped, action_root.join('message_already_stopped')
 			autoload :MessageNotCreated, action_root.join('message_not_created')
 			autoload :MessageNotRunning, action_root.join('message_not_running')
+			autoload :MessageFileNotFound, action_root.join('message_file_not_found')
+			autoload :MessageUploadServerError, action_root.join('message_upload_server_error')
 			autoload :CreateVm, action_root.join('create_vm')
 			autoload :StartVm, action_root.join('start_vm')
 			autoload :StopVm, action_root.join('stop_vm')
@@ -172,6 +184,7 @@ module VagrantPlugins
 			autoload :CleanupAfterDestroy, action_root.join('cleanup_after_destroy')
 			autoload :ReadSSHInfo, action_root.join('read_ssh_info')
 			autoload :SyncFolders, action_root.join('sync_folders')
+			autoload :UploadTemplateFile, action_root.join('upload_template_file')
 
 		end
 	end

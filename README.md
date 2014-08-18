@@ -47,10 +47,8 @@ Vagrant.configure('2') do |config|
 		proxmox.password = 'password'
 		proxmox.vm_id_range = 900..910
 		proxmox.vm_name_prefix = 'vagrant_'
-		proxmox.os_template = 'local:vztmpl/template.tgz'
+		proxmox.os_template = 'local:vztmpl/template.tar.gz'
 		proxmox.vm_memory = 256
-		proxmox.task_timeout = 30
-		proxmox.task_status_check_interval = 1
 	end
 
 	config.vm.define :box, primary: true do |box|

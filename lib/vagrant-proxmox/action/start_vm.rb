@@ -23,12 +23,19 @@ module VagrantPlugins
 					env[:ui].info I18n.t('vagrant_proxmox.done')
 
 					env[:ui].info I18n.t('vagrant_proxmox.waiting_for_ssh_connection')
-					loop do
-						# If we're interrupted then just back out
-						break if env[:interrupted]
-						break if env[:machine].communicate.ready?
-						sleep env[:machine].provider_config.task_status_check_interval
+
+					retryException = Class.new StandardError
+
+					begin
+						retryable(on: retryException,
+											tries: env[:machine].provider_config.ssh_timeout / env[:machine].provider_config.ssh_status_check_interval + 1,
+											sleep: env[:machine].provider_config.ssh_status_check_interval) do
+							raise retryException unless env[:interrupted] || env[:machine].communicate.ready?
+						end
+					rescue retryException
+						raise VagrantPlugins::Proxmox::Errors::SSHError
 					end
+
 					env[:ui].info I18n.t('vagrant_proxmox.done')
 
 					next_action env
