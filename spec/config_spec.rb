@@ -21,13 +21,18 @@ describe VagrantPlugins::Proxmox::Config do
 			it { is_expected.to be_nil }
 		end
 
-		describe '#os_template' do
-			subject { super().os_template }
+		describe '#vm_type' do
+			subject { super().vm_type }
 			it { is_expected.to be_nil }
 		end
 
-		describe '#template_file' do
-			subject { super().template_file }
+		describe '#openvz_os_template' do
+			subject { super().openvz_os_template }
+			it { is_expected.to be_nil }
+		end
+
+		describe '#openvz_template_file' do
+			subject { super().openvz_template_file }
 			it { is_expected.to be_nil }
 		end
 
@@ -66,20 +71,46 @@ describe VagrantPlugins::Proxmox::Config do
 			it { is_expected.to eq(5) }
 		end
 
+		describe '#qemu_os' do
+			subject { super().qemu_os }
+			it { is_expected.to be_nil }
+		end
+
+		describe '#qemu_iso' do
+			subject { super().qemu_iso }
+			it { is_expected.to be_nil }
+		end
+
+		describe '#qemu_iso_file' do
+			subject { super().qemu_iso_file }
+			it { is_expected.to be_nil }
+		end
+
+		describe '#qemu_disk_size' do
+			subject { super().qemu_disk_size }
+			it { is_expected.to be_nil }
+		end
+
 	end
 
 	describe 'of a given Vagrantfile' do
 
-		let(:proxmox_os_template) { "proxmox.os_template = 'local:vztmpl/template.tar.gz'" }
-		let(:proxmox_template_file) { '' }
+		let(:proxmox_qemu_iso) { '' }
+		let(:proxmox_openvz_os_template) { "proxmox.openvz_os_template = 'local:vztmpl/template.tar.gz'" }
+		let(:proxmox_openvz_template_file) { '' }
+		let(:proxmox_vm_type) { 'proxmox.vm_type = :openvz' }
+		let(:proxmox_qemu_iso_file) { '' }
 		let(:vagrantfile_content) { "
 Vagrant.configure('2') do |config|
 	config.vm.provider :proxmox do |proxmox|
 		proxmox.endpoint = 'https://proxmox.example.com/api2/json'
 		proxmox.user_name = 'vagrant'
 		proxmox.password = 'password'
-    #{proxmox_os_template}
-		#{proxmox_template_file}
+    #{proxmox_vm_type}
+		#{proxmox_openvz_os_template}
+		#{proxmox_openvz_template_file}
+		#{proxmox_qemu_iso}
+		#{proxmox_qemu_iso_file}
 		proxmox.vm_id_range = 900..910
 		proxmox.vm_name_prefix = 'vagrant_test_'
 		proxmox.vm_memory = 256
@@ -125,26 +156,25 @@ end
 			end
 
 			context 'with an existing template file' do
-				describe '#os_template' do
+				describe '#openvz_os_template' do
 					before do
 					end
-					subject { super().os_template }
+					subject { super().openvz_os_template }
 					it { is_expected.to eq('local:vztmpl/template.tar.gz') }
 				end
 			end
 
 			context 'with a new template file' do
-				let(:proxmox_os_template) { "" }
-				let(:proxmox_template_file) { "proxmox.template_file = 'template.tar.gz'" }
+				let(:proxmox_openvz_os_template) { "" }
+				let(:proxmox_openvz_template_file) { "proxmox.openvz_template_file = 'template.tar.gz'" }
 
-				describe '#template_file' do
+				describe '#openvz_template_file' do
 					before do
 					end
-					subject { super().template_file }
+					subject { super().openvz_template_file }
 					it { is_expected.to eq('template.tar.gz') }
 				end
 			end
-
 
 			describe '#vm_id_range' do
 				subject { super().vm_id_range }
@@ -208,14 +238,63 @@ end
 					end
 				end
 
-				describe 'because of a missing os_template and missing template_file' do
-					before do
-						subject.os_template = nil
-						subject.template_file = nil
-					end
+				describe 'because of a missing vm_type' do
+					before { subject.vm_type = nil }
 					specify 'it should report an error' do
-						expect(subject.validate(machine)).to eq({'Proxmox Provider' => ['No os_template or template_file specified.']})
+						expect(subject.validate(machine)).to eq({'Proxmox Provider' => ['No vm_type specified']})
 					end
+				end
+
+				context 'with vm_type = :openvz' do
+
+					describe 'because of a missing openvz_os_template and missing openvz_template_file' do
+						before do
+							subject.openvz_os_template = nil
+							subject.openvz_template_file = nil
+						end
+						specify 'it should report an error' do
+							expect(subject.validate(machine)).to eq({'Proxmox Provider' => ['No openvz_os_template or openvz_template_file specified for vm_type=:openvz']})
+						end
+					end
+				end
+
+				context 'with vm_type = :qemu' do
+
+					before do
+						subject.vm_type = :qemu
+						subject.qemu_os = :l26
+						subject.qemu_iso = 'anyiso.iso'
+						subject.qemu_disk_size = '30G'
+					end
+
+					describe 'because of a missing qemu_iso and missing qemu_iso_file' do
+						before do
+							subject.qemu_iso = nil
+							subject.qemu_iso_file = nil
+						end
+						specify 'it should report an error' do
+							expect(subject.validate(machine)).to eq({'Proxmox Provider' => ['No qemu_iso or qemu_iso_file specified for vm_type=:qemu']})
+						end
+					end
+
+					describe 'because of a missing qemu_os_type' do
+						before do
+							subject.qemu_os = nil
+						end
+						specify 'it should report an error' do
+							expect(subject.validate(machine)).to eq({'Proxmox Provider' => ['No qemu_os specified for vm_type=:qemu']})
+						end
+					end
+
+					describe 'because of a missing qemu_disk_size' do
+						before do
+							subject.qemu_disk_size = nil
+						end
+						specify 'it should report an error' do
+							expect(subject.validate(machine)).to eq({'Proxmox Provider' => ['No qemu_disk_size specified for vm_type=:qemu']})
+						end
+					end
+
 				end
 			end
 		end
@@ -224,13 +303,26 @@ end
 
 			context 'a template file was specified' do
 
-				let(:proxmox_os_template) { '' }
-				let(:proxmox_template_file) { "proxmox.template_file = '/my/dir/mytemplate.tar.gz'" }
+				let(:proxmox_openvz_os_template) { '' }
+				let(:proxmox_openvz_template_file) { "proxmox.openvz_template_file = '/my/dir/mytemplate.tar.gz'" }
 
-				it 'should set the os_template to the uploaded template file' do
-					expect(config.os_template).to eq('local:vztmpl/mytemplate.tar.gz')
+				it 'should set the openvz_os_template to the uploaded template file' do
+					expect(config.openvz_os_template).to eq('local:vztmpl/mytemplate.tar.gz')
 				end
 			end
+
+			context 'an iso file was specified' do
+
+				let(:proxmox_openvz_os_template) { '' }
+				let(:proxmox_openvz_template_file) { '' }
+				let(:proxmox_qemu_iso) { '' }
+				let(:proxmox_qemu_iso_file) { "proxmox.qemu_iso_file = '/my/dir/myiso.iso'" }
+
+				it 'should set the openvz_os_template to the uploaded template file' do
+					expect(config.qemu_iso).to eq('local:iso/myiso.iso')
+				end
+			end
+
 		end
 	end
 end

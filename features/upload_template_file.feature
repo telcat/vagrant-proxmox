@@ -10,7 +10,8 @@ Feature: Use new template file
           proxmox.endpoint = 'https://proxmox.example.com/api2/json'
           proxmox.user_name = 'vagrant'
           proxmox.password = 'password'
-          proxmox.template_file = './tmp/mytemplate.tar.gz'
+          proxmox.vm_type = :openvz
+          proxmox.openvz_template_file = './tmp/mytemplate.tar.gz'
 	      end
         config.vm.define :machine, primary: true do |machine|
           machine.vm.box = 'b681e2bc-617b-4b35-94fa-edc92e1071b8'
@@ -38,6 +39,6 @@ Feature: Use new template file
 
   Scenario: A template is specified in the Vagrantfile and an error occurs during upload
     Given A templatefile "./tmp/mytemplate.tar.gz" exists locally
-    But during upload an error will occure
+    But during upload an error will occur
     When I run "vagrant up --provider=proxmox --no-provision"
     Then I should see "Error during upload"

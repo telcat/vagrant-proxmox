@@ -8,7 +8,7 @@ def stub_machine_initialization
 	stub_request(:get, proxmox_api_url('/nodes')).
 		to_return body: {data: [{node: 'node1'}]}.to_json
 	stub_request(:get, proxmox_api_url('/cluster/resources?type=vm')).
-		to_return body: {data: []}.to_json
+		to_return body: {data: [{node: 'node1', id: 'openvz/900'}]}.to_json
 	stub_request(:post, proxmox_api_url('/nodes/node1/openvz')).
 		to_return body: {data: 'task_id'}.to_json
 	stub_request(:get, proxmox_api_url('/nodes/node1/tasks/task_id/status')).
@@ -18,7 +18,7 @@ def stub_machine_initialization
 	stub_request(:get, proxmox_api_url('/nodes/node1/openvz/900/status/current')).
 		to_return(body: {data: {status: 'running'}}.to_json)
 	@storage_content_request_stub = stub_request(:get, proxmox_api_url('/nodes/node1/storage/local/content')).
-		to_return body: {data: []}.to_json
+		to_return body: {data: [{node: 'node1', id: 'openvz/900'}]}.to_json
 	stub_request(:post, proxmox_api_url('/nodes/node1/storage/local/upload')).
 		to_return body: {data: 'task_id'}.to_json
 end
@@ -32,7 +32,7 @@ def stub_default_calls
 	stub_request(:get, proxmox_api_url('/nodes')).
 		to_return body: {data: [{node: 'node1'}]}.to_json
 	stub_request(:get, proxmox_api_url('/cluster/resources?type=vm')).
-		to_return body: {data: []}.to_json
+		to_return body: {data: [{node: 'node1', id: 'openvz/900'}]}.to_json
 	stub_request(:post, proxmox_api_url('/nodes/node1/openvz')).
 		to_return body: {data: 'task_id'}.to_json
 	stub_request(:get, proxmox_api_url('/nodes/node1/tasks/task_id/status')).

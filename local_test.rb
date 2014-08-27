@@ -10,7 +10,7 @@ require_relative 'features/support/vagrant_ui_mock.rb'
 config=YAML.load_file("#{ENV['HOME']}/.rake/rake.yml")
 @conn.login username: config['proxmox']['user_name'] , password: config['proxmox']['password']
 
-@environment = Vagrant::Environment.new vagrantfile_name: 'Vagrantfile'
+@environment = Vagrant::Environment.new vagrantfile_name: 'Vagrantfile_qemu'
 @ui = VagrantUIMock.new
 @environment.instance_variable_set :@ui, @ui
 

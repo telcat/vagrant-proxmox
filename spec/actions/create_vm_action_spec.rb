@@ -5,7 +5,8 @@ module VagrantPlugins::Proxmox
 
 	describe Action::CreateVm do
 
-		let(:environment) { Vagrant::Environment.new vagrantfile_name: 'dummy_box/Vagrantfile' }
+		let(:vagrantfile) { 'dummy_box/Vagrantfile' }
+		let(:environment) { Vagrant::Environment.new vagrantfile_name: vagrantfile }
 		let(:connection) { Connection.new 'https://your.proxmox.server/api2/json' }
 		let(:env) { {machine: environment.machine(environment.primary_machine_name, :proxmox),
 								 proxmox_selected_node: 'localhost',
@@ -27,48 +28,102 @@ module VagrantPlugins::Proxmox
 
 			describe 'the call to create a new virtual machine' do
 
-				context 'with default config' do
-					specify do
-						expect(connection).to receive(:create_vm).
-																		with(node: 'localhost',
-																				 params: {vmid: 100,
-																									hostname: 'machine',
-																									ostemplate: 'local:vztmpl/template.tar.gz',
-																									password: 'vagrant',
-																									memory: 256,
-																									description: 'vagrant_test_machine'})
-						action.call env
+				context 'when the vm_type is :openvz' do
+
+					let(:vagrantfile) { 'dummy_box/Vagrantfile' }
+					before { allow(env[:machine].provider_config).to receive(:vm_type) { :openvz } }
+
+					context 'with default config' do
+						specify do
+							expect(connection).to receive(:create_vm).
+																			with(node: 'localhost',
+																					 vm_type: :openvz,
+																					 params: {vmid: 100,
+																										hostname: 'machine',
+																										ostemplate: 'local:vztmpl/template.tar.gz',
+																										password: 'vagrant',
+																										memory: 256,
+																										description: 'vagrant_test_machine'})
+							action.call env
+						end
+					end
+
+					context 'with a specified hostname' do
+						before { env[:machine].config.vm.hostname = 'hostname' }
+						specify do
+							expect(connection).to receive(:create_vm).
+																			with(node: 'localhost',
+																					 vm_type: :openvz,
+																					 params: {vmid: 100,
+																										hostname: 'hostname',
+																										ostemplate: 'local:vztmpl/template.tar.gz',
+																										password: 'vagrant',
+																										memory: 256,
+																										description: 'vagrant_test_machine'})
+							action.call env
+						end
+					end
+
+					context 'with a specified ip address' do
+						before { allow(env[:machine].config.vm).to receive(:networks) { [[:public_network, {ip: '127.0.0.1'}]] } }
+						specify do
+							expect(connection).to receive(:create_vm).
+																			with(node: 'localhost',
+																					 vm_type: :openvz,
+																					 params: {vmid: 100,
+																										hostname: 'machine',
+																										ip_address: '127.0.0.1',
+																										ostemplate: 'local:vztmpl/template.tar.gz',
+																										password: 'vagrant',
+																										memory: 256,
+																										description: 'vagrant_test_machine'})
+							action.call env
+						end
 					end
 				end
 
-				context 'with a specified hostname' do
-					before { env[:machine].config.vm.hostname = 'hostname' }
-					specify do
-						expect(connection).to receive(:create_vm).
-																		with(node: 'localhost',
-																				 params: {vmid: 100,
-																									hostname: 'hostname',
-																									ostemplate: 'local:vztmpl/template.tar.gz',
-																									password: 'vagrant',
-																									memory: 256,
-																									description: 'vagrant_test_machine'})
-						action.call env
-					end
-				end
+				context 'when the vm_type is :qemu' do
 
-				context 'with a specified ip address' do
-					before { allow(env[:machine].config.vm).to receive(:networks) { [[:public_network, {ip: '127.0.0.1'}]] } }
-					specify do
-						expect(connection).to receive(:create_vm).
-																		with(node: 'localhost',
-																				 params: {vmid: 100,
-																									hostname: 'machine',
-																									ip_address: '127.0.0.1',
-																									ostemplate: 'local:vztmpl/template.tar.gz',
-																									password: 'vagrant',
-																									memory: 256,
-																									description: 'vagrant_test_machine'})
-						action.call env
+					let(:vagrantfile) { 'dummy_box/Vagrantfile_qemu' }
+					before { allow(env[:machine].provider_config).to receive(:vm_type) { :qemu } }
+
+					context 'with default config' do
+						specify do
+							expect(connection).to receive(:create_vm).
+																			with(node: 'localhost',
+																					 vm_type: :qemu,
+																					 params: {vmid: 100,
+																										name: 'machine',
+																										ostype: :l26,
+																										ide2: 'local:iso/isofile.iso,media=cdrom',
+																										sata0: 'raid:30,format=qcow2',
+																										sockets: 1,
+																										cores: 1,
+																										net0: 'e1000,bridge=vmbr0',
+																										memory: 256,
+																										description: 'vagrant_test_machine'})
+							action.call env
+						end
+					end
+
+					context 'with a specified hostname' do
+						before { env[:machine].config.vm.hostname = 'hostname' }
+						specify do
+							expect(connection).to receive(:create_vm).
+																			with(node: 'localhost',
+																					 vm_type: :qemu,
+																					 params: {vmid: 100,
+																										name: 'hostname',
+																										ostype: :l26,
+																										ide2: 'local:iso/isofile.iso,media=cdrom',
+																										sata0: 'raid:30,format=qcow2',
+																										sockets: 1,
+																										cores: 1,
+																										net0: 'e1000,bridge=vmbr0',
+																										memory: 256,
+																										description: 'vagrant_test_machine'})
+							action.call env
+						end
 					end
 				end
 			end
@@ -111,11 +166,7 @@ module VagrantPlugins::Proxmox
 						expect { action.send :call, env }.to raise_error Errors::VMCreateError, /create vm error/
 					end
 				end
-
 			end
-
 		end
-
 	end
-
 end

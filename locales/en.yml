@@ -15,7 +15,7 @@ en:
       destroy_vm_timeout: |-
         Destroying the vm on the proxmox server timed out.
       no_endpoint_specified: 'No endpoint specified.'
-      no_os_template_or_template_file_specified: 'No os_template or template_file specified.'
+      no_openvz_os_template_or_openvz_template_file_specified_for_type_openvz: 'No openvz_os_template or openvz_template_file specified for vm_type=:openvz'
       no_password_specified: 'No password specified.'
       no_user_name_specified: 'No user_name specified.'
       no_vm_id_available: |-
@@ -66,6 +66,11 @@ en:
       file_not_found: "File for upload not found"
       upload_server_error: "Error during upload"
       ssh_error: Unable to establish an ssh connection to the virtual machine...
+      no_vm_type_specified: "No vm_type specified"
+      no_qemu_iso_or_qemu_iso_file_specified_for_vm_type_openvz: "No qemu_iso or qemu_iso_file specified for vm_type=:qemu"
+      no_qemu_iso_or_qemu_iso_file_specified_for_vm_type_qemu: "No qemu_iso or qemu_iso_file specified for vm_type=:qemu"
+      no_qemu_os_specified_for_vm_type_qemu: "No qemu_os specified for vm_type=:qemu"
+      no_qemu_disk_size_specified_for_vm_type_qemu: "No qemu_disk_size specified for vm_type=:qemu"
     not_created: 'The virtual machine is not created on the server!'
     rsync_folder: |-
           Rsyncing folder: %{hostpath} => %{guestpath}

@@ -3,33 +3,33 @@ require 'actions/proxmox_action_shared'
 
 module VagrantPlugins::Proxmox
 
-	describe Action::UploadTemplateFile do
+	describe Action::UploadIsoFile do
 
-		let(:environment) { Vagrant::Environment.new vagrantfile_name: 'dummy_box/Vagrantfile' }
+		let(:environment) { Vagrant::Environment.new vagrantfile_name: 'dummy_box/Vagrantfile_qemu' }
 		let(:connection) { Connection.new 'https://your.proxmox.server/api2/json' }
 		let(:env) { {machine: environment.machine(environment.primary_machine_name, :proxmox),
 								 proxmox_connection: connection, proxmox_selected_node: node} }
-		let(:template_file) { 'template.tar.gz' }
-		let(:template_file_exists) { true }
+		let(:iso_file) { 'some_iso.iso' }
+		let(:iso_file_exists) { true }
 		let(:node) { 'node1' }
 
 		subject(:action) { described_class.new(-> (_) {}, environment) }
 
 		before do
-			env[:machine].provider_config.openvz_template_file = template_file
-			allow(File).to receive(:exist?).with(template_file).and_return(template_file_exists)
+			env[:machine].provider_config.qemu_iso_file = iso_file
+			allow(File).to receive(:exist?).with(iso_file).and_return(iso_file_exists)
 		end
 
-		context 'with a specified template file' do
+		context 'with a specified iso file' do
 
-			it 'should upload the template file into the local storage of the selected node' do
-				expect(connection).to receive(:upload_file).with(template_file, content_type: 'vztmpl', node: node, storage: 'local')
+			it 'should upload the iso file into the local storage of the selected node' do
+				expect(connection).to receive(:upload_file).with(iso_file, content_type: 'iso', node: node, storage: 'local')
 				action.call env
 			end
 		end
 
 		it 'should return :ok after a successful upload' do
-			allow(connection).to receive(:upload_file).with(template_file, content_type: 'vztmpl', node: node, storage: 'local')
+			allow(connection).to receive(:upload_file).with(iso_file, content_type: 'iso', node: node, storage: 'local')
 			action.call env
 			expect(env[:result]).to eq(:ok)
 		end
@@ -46,9 +46,9 @@ module VagrantPlugins::Proxmox
 			end
 		end
 
-		context 'without a specified template file' do
+		context 'without a specified iso file' do
 
-			let(:template_file) { nil }
+			let(:iso_file) { nil }
 
 			it 'does nothing and returns OK' do
 				expect(connection).not_to receive(:upload_file)
@@ -57,9 +57,9 @@ module VagrantPlugins::Proxmox
 			end
 		end
 
-		context 'the specified template file does not exist' do
+		context 'the specified iso file does not exist' do
 
-			let (:template_file_exists) { false }
+			let (:iso_file_exists) { false }
 
 			it 'should return :file_not_found' do
 				action.call env

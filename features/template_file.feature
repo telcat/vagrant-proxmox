@@ -9,7 +9,8 @@ Feature: Use existing template file
           proxmox.endpoint = 'https://proxmox.example.com/api2/json'
           proxmox.user_name = 'vagrant'
           proxmox.password = 'password'
-          proxmox.os_template = 'local:vztmpl/template.tar.gz'
+          proxmox.vm_type = :openvz
+          proxmox.openvz_os_template = 'local:vztmpl/template.tar.gz'
 	      end
         config.vm.define :machine, primary: true do |machine|
           machine.vm.box = 'b681e2bc-617b-4b35-94fa-edc92e1071b8'

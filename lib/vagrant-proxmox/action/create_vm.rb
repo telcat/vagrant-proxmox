@@ -20,15 +20,29 @@ module VagrantPlugins
 
 					begin
 						vm_id = connection(env).get_free_vm_id
-						params = {vmid: vm_id,
-											ostemplate: config.os_template,
-											hostname: env[:machine].config.vm.hostname || env[:machine].name.to_s,
-											password: 'vagrant',
-											memory: config.vm_memory,
-											description: "#{config.vm_name_prefix}#{env[:machine].name}"}
-						params[:ip_address] = get_machine_ip_address(env) if get_machine_ip_address(env)
 
-						exit_status = connection(env).create_vm node: node, params: params
+						if config.vm_type == :openvz
+							params = {vmid: vm_id,
+												ostemplate: config.openvz_os_template,
+												hostname: env[:machine].config.vm.hostname || env[:machine].name.to_s,
+												password: 'vagrant',
+												memory: config.vm_memory,
+												description: "#{config.vm_name_prefix}#{env[:machine].name}"}
+							params[:ip_address] = get_machine_ip_address(env) if get_machine_ip_address(env)
+						elsif config.vm_type == :qemu
+							params = {vmid: vm_id,
+												name: env[:machine].config.vm.hostname || env[:machine].name.to_s,
+												ostype: config.qemu_os,
+												ide2: "#{config.qemu_iso},media=cdrom",
+												sata0: "raid:#{convert_disk_size_to_gigabyte config.qemu_disk_size},format=qcow2",
+												sockets: 1,
+												cores: 1,
+												memory: config.vm_memory,
+												net0: 'e1000,bridge=vmbr0',
+												description: "#{config.vm_name_prefix}#{env[:machine].name}"}
+						end
+
+						exit_status = connection(env).create_vm node: node, vm_type: config.vm_type, params: params
 						exit_status == 'OK' ? exit_status : raise(VagrantPlugins::Proxmox::Errors::ProxmoxTaskFailed, proxmox_exit_status: exit_status)
 					rescue StandardError => e
 						raise VagrantPlugins::Proxmox::Errors::VMCreateError, proxmox_exit_status: e.message
@@ -40,8 +54,14 @@ module VagrantPlugins
 					next_action env
 				end
 
+				private
+				def convert_disk_size_to_gigabyte disk_size
+					case disk_size[-1]
+						when 'G'
+							disk_size[0..-2]
+					end
+				end
 			end
-
 		end
 	end
 end

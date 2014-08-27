@@ -17,15 +17,20 @@ module VagrantPlugins
 			# @return [String]
 			attr_accessor :password
 
-			# The openvz os template to use for the virtual machines
+			# The virtual machine type, e.g. :openvz or :qemu
 			#
-			# @return [String]
-			attr_accessor :os_template
+			# @return [Symbol]
+			attr_accessor :vm_type
 
-			# The openvz os template file to upload and use for the virtual machines
+			# The openvz os template to use for the virtual machine
 			#
 			# @return [String]
-			attr_accessor :template_file
+			attr_accessor :openvz_os_template
+
+			# The openvz os template file to upload and use for the virtual machine
+			#
+			# @return [String]
+			attr_accessor :openvz_template_file
 
 			# The id range to use for the virtual machines
 			#
@@ -62,12 +67,33 @@ module VagrantPlugins
 			# @return [Integer, Proc]
 			attr_accessor :ssh_status_check_interval
 
+			# The qemu virtual machine operating system, e.g. :l26
+			#
+			# @return [Symbol]
+			attr_accessor :qemu_os
+
+			# The qemu iso file to use for the virtual machine
+			#
+			# @return [String]
+			attr_accessor :qemu_iso
+
+			# The qemu iso file to upload and use for the virtual machine
+			#
+			# @return [String]
+			attr_accessor :qemu_iso_file
+
+			# The qemu disk size to use for the virtual machine, e.g. '30G'
+			#
+			# @return [String]
+			attr_accessor :qemu_disk_size
+
 			def initialize
 				@endpoint = UNSET_VALUE
 				@user_name = UNSET_VALUE
 				@password = UNSET_VALUE
-				@os_template = UNSET_VALUE
-				@template_file = UNSET_VALUE
+				@vm_type = UNSET_VALUE
+				@openvz_os_template = UNSET_VALUE
+				@openvz_template_file = UNSET_VALUE
 				@vm_id_range = 900..999
 				@vm_name_prefix = 'vagrant_'
 				@vm_memory = 512
@@ -75,6 +101,10 @@ module VagrantPlugins
 				@task_status_check_interval = 2
 				@ssh_timeout = 60
 				@ssh_status_check_interval = 5
+				@qemu_os = UNSET_VALUE
+				@qemu_iso = UNSET_VALUE
+				@qemu_iso_file = UNSET_VALUE
+				@qemu_disk_size = UNSET_VALUE
 			end
 
 			# This is the hook that is called to finalize the object before it is put into use.
@@ -82,9 +112,15 @@ module VagrantPlugins
 				@endpoint = nil if @endpoint == UNSET_VALUE
 				@user_name = nil if @user_name == UNSET_VALUE
 				@password = nil if @password == UNSET_VALUE
-				@template_file = nil if @template_file == UNSET_VALUE
-				@os_template = "local:vztmpl/#{File.basename @template_file}" if @template_file
-				@os_template = nil if @os_template == UNSET_VALUE
+				@vm_type = nil if @vm_type == UNSET_VALUE
+				@openvz_template_file = nil if @openvz_template_file == UNSET_VALUE
+				@openvz_os_template = "local:vztmpl/#{File.basename @openvz_template_file}" if @openvz_template_file
+				@openvz_os_template = nil if @openvz_os_template == UNSET_VALUE
+				@qemu_os = nil if @qemu_os == UNSET_VALUE
+				@qemu_iso_file = nil if @qemu_iso_file == UNSET_VALUE
+				@qemu_iso = "local:iso/#{File.basename @qemu_iso_file}" if @qemu_iso_file
+				@qemu_iso = nil if @qemu_iso == UNSET_VALUE
+				@qemu_disk_size = nil if @qemu_disk_size == UNSET_VALUE
 			end
 
 			def validate machine
@@ -92,7 +128,15 @@ module VagrantPlugins
 				errors << I18n.t('vagrant_proxmox.errors.no_endpoint_specified') unless @endpoint
 				errors << I18n.t('vagrant_proxmox.errors.no_user_name_specified') unless @user_name
 				errors << I18n.t('vagrant_proxmox.errors.no_password_specified') unless @password
-				errors << I18n.t('vagrant_proxmox.errors.no_os_template_or_template_file_specified') unless @os_template || @template_file
+				errors << I18n.t('vagrant_proxmox.errors.no_vm_type_specified') unless @vm_type
+				if @vm_type == :openvz
+					errors << I18n.t('vagrant_proxmox.errors.no_openvz_os_template_or_openvz_template_file_specified_for_type_openvz') unless @openvz_os_template || @openvz_template_file
+				end
+				if @vm_type == :qemu
+					errors << I18n.t('vagrant_proxmox.errors.no_qemu_os_specified_for_vm_type_qemu') unless @qemu_os
+					errors << I18n.t('vagrant_proxmox.errors.no_qemu_iso_or_qemu_iso_file_specified_for_vm_type_qemu') unless @qemu_iso || @qemu_iso_file
+					errors << I18n.t('vagrant_proxmox.errors.no_qemu_disk_size_specified_for_vm_type_qemu') unless @qemu_disk_size
+				end
 				{'Proxmox Provider' => errors}
 			end
 

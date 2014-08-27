@@ -87,14 +87,14 @@ end
 Given(/^the template file "([^"]*)" already exists in the proxmox storage$/) do |filename|
 	remove_request_stub @storage_content_request_stub
 	stub_request(:get, proxmox_api_url('/nodes/node1/storage/local/content')).
-		to_return(body: {data: [{volid: 'local:vztmpl/mytemplate.tar.gz'}]}.to_json)
+		to_return(body: {data: [{volid: "local:vztmpl/#{filename}"}]}.to_json)
 end
 
 Given(/^A templatefile "([^"]*)" exists locally$/) do |filename|
 	touch_tempfile filename
 end
 
-But(/^during upload an error will occure$/) do
+But(/^during upload an error will occur$/) do
 	stub_request(:post, proxmox_api_url('/nodes/node1/storage/local/upload')).
 		to_return status: 500
 end
@@ -105,4 +105,26 @@ end
 
 And(/^it won't response to ssh once it's started$/) do
 	CommunicatorMock.ssh_enabled = false
+end
+
+Given(/^An iso file "([^"]*)" exists locally$/) do |filename|
+	touch_tempfile filename
+end
+
+Then(/^The iso file "([^"]*)" is uploaded into the local storage of the vm node$/) do |arg|
+	assert_requested :post, proxmox_api_url('/nodes/node1/storage/local/upload')
+end
+
+And(/^the new virtual machine using the iso "([^"]*)" is created$/) do |iso|
+	assert_requested :post, proxmox_api_url('/nodes/node1/qemu'), body: /#{CGI.escape(iso)}/
+end
+
+And(/^the iso file "([^"]*)" exists locally" already exists in the proxmox storage$/) do |iso|
+	remove_request_stub @storage_content_request_stub
+	stub_request(:get, proxmox_api_url('/nodes/node1/storage/local/content')).
+		to_return(body: {data: [{volid: "local:iso/#{iso}"}]}.to_json)
+end
+
+Then(/^The iso file "([^"]*)" is not uploaded$/) do |arg|
+	assert_not_requested :post, proxmox_api_url('/nodes/node1/storage/local/upload')
 end

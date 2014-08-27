@@ -52,12 +52,17 @@ module VagrantPlugins
 			end
 
 			def get_vm_state(node:, vm_id:)
-				begin
-					response = get "/nodes/#{node}/openvz/#{vm_id}/status/current"
-					states = {'running' => :running,
-										'stopped' => :stopped}
-					states[response[:data][:status]]
-				rescue ApiError::ServerError
+				vm_type = get_vm_type node: node, vm_id: vm_id
+				if vm_type
+					begin
+						response = get "/nodes/#{node}/#{vm_type}/#{vm_id}/status/current"
+						states = {'running' => :running,
+											'stopped' => :stopped}
+						states[response[:data][:status]]
+					rescue ApiError::ServerError
+						:not_created
+					end
+				else
 					:not_created
 				end
 			end
@@ -77,27 +82,31 @@ module VagrantPlugins
 			end
 
 			def delete_vm(node:, vm_id:)
-				response = delete "/nodes/#{node}/openvz/#{vm_id}"
+				vm_type = get_vm_type node: node, vm_id: vm_id
+				response = delete "/nodes/#{node}/#{vm_type}/#{vm_id}"
 				wait_for_completion task_response: response, node: node, timeout_message: 'vagrant_proxmox.errors.destroy_vm_timeout'
 			end
 
-			def create_vm(node:, params:)
-				response = post "/nodes/#{node}/openvz", params
+			def create_vm(node:, vm_type:, params:)
+				response = post "/nodes/#{node}/#{vm_type}", params
 				wait_for_completion task_response: response, node: node, timeout_message: 'vagrant_proxmox.errors.create_vm_timeout'
 			end
 
 			def start_vm(node:, vm_id:)
-				response = post "/nodes/#{node}/openvz/#{vm_id}/status/start", nil
+				vm_type = get_vm_type node: node, vm_id: vm_id
+				response = post "/nodes/#{node}/#{vm_type}/#{vm_id}/status/start", nil
 				wait_for_completion task_response: response, node: node, timeout_message: 'vagrant_proxmox.errors.start_vm_timeout'
 			end
 
 			def stop_vm(node:, vm_id:)
-				response = post "/nodes/#{node}/openvz/#{vm_id}/status/stop", nil
+				vm_type = get_vm_type node: node, vm_id: vm_id
+				response = post "/nodes/#{node}/#{vm_type}/#{vm_id}/status/stop", nil
 				wait_for_completion task_response: response, node: node, timeout_message: 'vagrant_proxmox.errors.stop_vm_timeout'
 			end
 
 			def shutdown_vm(node:, vm_id:)
-				response = post "/nodes/#{node}/openvz/#{vm_id}/status/shutdown", nil
+				vm_type = get_vm_type node: node, vm_id: vm_id
+				response = post "/nodes/#{node}/#{vm_type}/#{vm_id}/status/shutdown", nil
 				wait_for_completion task_response: response, node: node, timeout_message: 'vagrant_proxmox.errors.shutdown_vm_timeout'
 			end
 
@@ -110,9 +119,9 @@ module VagrantPlugins
 			end
 
 			def upload_file(file, content_type:, node:, storage:)
-				unless is_file_in_storage? filename:file, node:node, storage:storage
+				unless is_file_in_storage? filename: file, node: node, storage: storage
 					res = post "/nodes/#{node}/storage/#{storage}/upload", content: content_type,
-													filename: File.new(file, 'rb'), node: node, storage: storage
+										 filename: File.new(file, 'rb'), node: node, storage: storage
 					wait_for_completion task_response: res, node: node, timeout_message: 'vagrant_proxmox.errors.upload_timeout'
 				end
 			end
@@ -120,6 +129,16 @@ module VagrantPlugins
 			def list_storage_files(node:, storage:)
 				res = get "/nodes/#{node}/storage/#{storage}/content"
 				res[:data].map { |e| e[:volid] }
+			end
+
+			private
+			def get_vm_type(node:, vm_id:)
+				response = get '/cluster/resources?type=vm'
+				vm_type = nil
+				response[:data].each do |m|
+					vm_type = /^(.*)\/(.*)$/.match(m[:id])[1] if m[:node] == node && (/^[a-z]*\/(.*)$/.match(m[:id])[1]).to_i == vm_id.to_i
+				end
+				vm_type
 			end
 
 			private
@@ -137,6 +156,8 @@ module VagrantPlugins
 					raise ApiError::NotImplemented
 				rescue RestClient::InternalServerError
 					raise ApiError::ServerError
+				rescue RestClient::Unauthorized
+					raise ApiError::UnauthorizedError
 				rescue => x
 					raise ApiError::ConnectionError, x.message
 				end

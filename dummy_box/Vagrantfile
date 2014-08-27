@@ -3,7 +3,8 @@ Vagrant.configure('2') do |config|
 		proxmox.endpoint = 'https://proxmox.example.com/api2/json'
 		proxmox.user_name = 'vagrant'
 		proxmox.password = 'password'
-		proxmox.os_template = 'local:vztmpl/template.tar.gz'
+		proxmox.vm_type = :openvz
+		proxmox.openvz_os_template = 'local:vztmpl/template.tar.gz'
 		proxmox.vm_id_range = 900..910
 		proxmox.vm_name_prefix = 'vagrant_test_'
 		proxmox.vm_memory = 256
