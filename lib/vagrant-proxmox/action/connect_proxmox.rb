@@ -17,7 +17,8 @@ module VagrantPlugins
 						connection = Connection.new config.endpoint,
 																				vm_id_range: config.vm_id_range,
 																				task_timeout: config.task_timeout,
-																				task_status_check_interval: config.task_status_check_interval
+																				task_status_check_interval: config.task_status_check_interval,
+																				imgcopy_timeout: config.imgcopy_timeout
 						connection.login username: config.user_name, password: config.password
 						env[:proxmox_connection] = connection
 					rescue => e

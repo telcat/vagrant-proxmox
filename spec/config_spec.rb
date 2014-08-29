@@ -71,6 +71,11 @@ describe VagrantPlugins::Proxmox::Config do
 			it { is_expected.to eq(5) }
 		end
 
+		describe '#imgcopy_timeout' do
+			subject { super().imgcopy_timeout }
+			it { is_expected.to eq(120) }
+		end
+
 		describe '#qemu_os' do
 			subject { super().qemu_os }
 			it { is_expected.to be_nil }

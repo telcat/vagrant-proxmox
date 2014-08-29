@@ -17,6 +17,7 @@ module VagrantPlugins::Proxmox
 		let(:connection_opts) { {} }
 		let(:task_timeout) { 40 }
 		let(:task_status_check_interval) { 5 }
+		let(:imgcopy_timeout) { 85 }
 
 		subject(:connection) { Connection.new api_url, connection_opts }
 
@@ -49,10 +50,15 @@ module VagrantPlugins::Proxmox
 					subject { super().task_status_check_interval }
 					it { is_expected.to eq(2) }
 				end
+
+				describe '#imgcopy_timeout' do
+					subject { super().imgcopy_timeout }
+					it { is_expected.to eq(120) }
+				end
 			end
 
 			context 'with custom values' do
-				let(:connection_opts) { {vm_id_range: (500..599), task_timeout: 90, task_status_check_interval: 3} }
+				let(:connection_opts) { {vm_id_range: (500..599), task_timeout: 90, task_status_check_interval: 3, imgcopy_timeout: 83 } }
 
 				describe '#vm_id_range' do
 					subject { super().vm_id_range }
@@ -67,6 +73,11 @@ module VagrantPlugins::Proxmox
 				describe '#task_status_check_interval' do
 					subject { super().task_status_check_interval }
 					it { is_expected.to eq(3) }
+				end
+
+				describe '#imgcopy_timeout' do
+					subject { super().imgcopy_timeout }
+					it { is_expected.to eq(83) }
 				end
 			end
 		end
@@ -226,14 +237,14 @@ module VagrantPlugins::Proxmox
 		describe '#wait_for_completion' do
 
 			it 'should get the task exit status' do
-				expect(connection).to receive(:get_task_exitstatus).with(task_upid, anything).and_return('OK')
-				connection.send(:wait_for_completion, task_response: task_response, node: 'localhost', timeout_message: '')
+				expect(connection).to receive(:get_task_exitstatus).with(task_upid).and_return('OK')
+				connection.send(:wait_for_completion, task_response: task_response, timeout_message: '')
 			end
 
 			context 'when the task is completed' do
 				before { allow(connection).to receive_messages get_task_exitstatus: 'OK' }
 				it 'should return the task exit status' do
-					expect(connection.send(:wait_for_completion, task_response: task_response, node: 'localhost', timeout_message: '')).to eq('OK')
+					expect(connection.send(:wait_for_completion, task_response: task_response, timeout_message: '')).to eq('OK')
 				end
 			end
 
@@ -243,6 +254,7 @@ module VagrantPlugins::Proxmox
 					Timecop.freeze
 					allow(connection).to receive_messages :get_task_exitstatus => nil
 					allow(connection).to receive_messages :task_timeout => task_timeout
+					allow(connection).to receive_messages :imgcopy_timeout => imgcopy_timeout
 					allow(connection).to receive_messages :task_status_check_interval => task_status_check_interval
 					allow(connection).to receive(:sleep) { |duration| Timecop.travel(Time.now + duration) }
 				end
@@ -252,41 +264,56 @@ module VagrantPlugins::Proxmox
 				end
 
 				it 'should raise an timeout error' do
-					expect { connection.send(:wait_for_completion, task_response: task_response, node: 'localhost', timeout_message: '') }.to raise_error VagrantPlugins::Proxmox::Errors::Timeout
+					expect { connection.send(:wait_for_completion, task_response: task_response, timeout_message: '') }.to raise_error VagrantPlugins::Proxmox::Errors::Timeout
 				end
 
-				it 'should wait out the timeout' do
-					connection.send(:wait_for_completion, task_response: task_response, node: 'localhost', timeout_message: '') rescue nil
-					expect(Time).to have_elapsed task_timeout.seconds
+				context 'when it is a regular task' do
+
+					it 'should wait out the task_timeout' do
+						connection.send(:wait_for_completion, task_response: task_response, timeout_message: '') rescue nil
+						expect(Time).to have_elapsed task_timeout.seconds
+					end
+
+					context 'when it is an upload task' do
+
+						let(:task_upid) { 'UPID:localhost:0000F6EF:00F8E35F:E268CD3B:imgcopy:100:vagrant@pve:' }
+
+						it 'should wait out the task_timeout' do
+							connection.send(:wait_for_completion, task_response: task_response, timeout_message: '') rescue nil
+							expect(Time).to have_elapsed imgcopy_timeout.seconds
+						end
+					end
+
 				end
 
 				it 'should check the task status a given number of times' do
 					task_iterations = task_timeout / task_status_check_interval + 1
 					expect(connection).to receive(:get_task_exitstatus).exactly(task_iterations).times
-					connection.send(:wait_for_completion, task_response: task_response, node: 'localhost', timeout_message: '') rescue nil
+					connection.send(:wait_for_completion, task_response: task_response, timeout_message: '') rescue nil
 				end
 			end
 		end
 
+
 		describe '#get_task_exitstatus' do
 
-			it 'should request the task state from the proxmox server' do
-				expect(RestClient).to receive(:get).with("#{api_url}/nodes/localhost/tasks/#{task_response}/status", anything).
+			it 'should request the task state from the proxmox server given in the task UPID' do
+				expect(RestClient).to receive(:get).with("#{api_url}/nodes/localhost/tasks/#{task_upid}/status", anything).
 																and_return({data: {}}.to_json)
-				connection.send(:get_task_exitstatus, task_response, 'localhost')
+				connection.send(:get_task_exitstatus, task_upid)
 			end
 
 			context 'the task has exited' do
 				it 'should return the exit status' do
 					allow(RestClient).to receive_messages get: {data: {upid: task_response, status: 'stopped', exitstatus: 'OK'}}.to_json
-					expect(connection.send(:get_task_exitstatus, task_response, 'localhost')).to eq('OK')
+					expect(connection.send(:get_task_exitstatus, task_upid)).to eq('OK')
 				end
 			end
 
 			context 'the task is still running' do
 				it 'should return nil' do
 					allow(RestClient).to receive_messages get: {data: {upid: task_response, status: 'running'}}.to_json
-					expect(connection.send(:get_task_exitstatus, task_response, 'localhost')).to eq(nil)
+					expect(connection.send(:get_task_exitstatus, task_upid)).to eq(nil)
 				end
 			end
 		end

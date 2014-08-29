@@ -47,7 +47,8 @@ Vagrant.configure('2') do |config|
 		proxmox.password = 'password'
 		proxmox.vm_id_range = 900..910
 		proxmox.vm_name_prefix = 'vagrant_'
-		proxmox.os_template = 'local:vztmpl/template.tar.gz'
+		proxmox.vm_type = :openvz
+        proxmox.openvz_os_template = 'local:vztmpl/template.tar.gz'
 		proxmox.vm_memory = 256
 	end
 
@@ -72,10 +73,19 @@ Finally run `vagrant up --provider=proxmox` to create and start the new OpenVZ c
 * `password` The password of the above user
 * `vm_id_range` The possible range of machine ids. The smallest free one is chosen for a new machine
 * `vm_name_prefix` An optional string that is prepended before the vm name
-* `os_template` The name of the template from which the OpenVZ container should be created
+* `vm_type` The virtual machine type, e.g. :openvz or :qemu
+* `openvz_os_template` The name of the template from which the OpenVZ container should be created
+* `openvz_template_file` The openvz os template file to upload and use for the virtual machine (can be specified instead of `openvz_os_template`)
 * `vm_memory` The container's main memory size
 * `task_timeout` How long to wait for completion of a Proxmox API command (in seconds)
 * `task_status_check_interval` Interval in seconds between checking for completion of a Proxmox API command
+* `ssh_timeout` The maximum timeout for a ssh connection to a virtual machine (in seconds)
+* `ssh_status_check_interval` The interval between two ssh reachability status retrievals (in seconds)
+* `imgcopy_timeout` The maximum timeout for a proxmox server task in case it's an upload (in seconds)
+* `qemu_os` The qemu virtual machine operating system, e.g. :l26
+* `qemu_iso` The qemu iso file to use for the virtual machine
+* `qemu_iso_file` The qemu iso file to upload and use for the virtual machine (can be specified instead of `qemu_iso`)
+* `qemu_disk_size` The qemu disk size to use for the virtual machine, e.g. '30G'
 
 ## Build the plugin
 

@@ -67,6 +67,11 @@ module VagrantPlugins
 			# @return [Integer, Proc]
 			attr_accessor :ssh_status_check_interval
 
+			# The maximum timeout for a proxmox server task if it's an upload (in seconds)
+			#
+			# @return [Integer]
+			attr_accessor :imgcopy_timeout
+
 			# The qemu virtual machine operating system, e.g. :l26
 			#
 			# @return [Symbol]
@@ -101,6 +106,7 @@ module VagrantPlugins
 				@task_status_check_interval = 2
 				@ssh_timeout = 60
 				@ssh_status_check_interval = 5
+				@imgcopy_timeout = 120
 				@qemu_os = UNSET_VALUE
 				@qemu_iso = UNSET_VALUE
 				@qemu_iso_file = UNSET_VALUE

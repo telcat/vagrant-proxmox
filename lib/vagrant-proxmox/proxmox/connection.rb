@@ -26,12 +26,14 @@ module VagrantPlugins
 			attr_accessor :vm_id_range
 			attr_accessor :task_timeout
 			attr_accessor :task_status_check_interval
+			attr_accessor :imgcopy_timeout
 
 			def initialize api_url, opts = {}
 				@api_url = api_url
 				@vm_id_range = opts[:vm_id_range] || (900..999)
 				@task_timeout = opts[:task_timeout] || 60
 				@task_status_check_interval = opts[:task_status_check_interval] || 2
+				@imgcopy_timeout = opts[:imgcopy_timeout] || 120
 			end
 
 			def login(username:, password:)
@@ -67,13 +69,16 @@ module VagrantPlugins
 				end
 			end
 
-			def wait_for_completion task_response: task_response, node: node, timeout_message: timeout_message
+			def wait_for_completion task_response: task_response, timeout_message: timeout_message
 				task_upid = task_response[:data]
+				timeout = task_timeout
+				task_type = /UPID:.*?:.*?:.*?:.*?:(.*)?:.*?:.*?:/.match(task_upid)[1]
+				timeout = imgcopy_timeout if task_type == 'imgcopy'
 				begin
 					retryable(on: VagrantPlugins::Proxmox::ProxmoxTaskNotFinished,
-										tries: task_timeout / task_status_check_interval + 1,
+										tries: timeout / task_status_check_interval + 1,
 										sleep: task_status_check_interval) do
-						exit_status = get_task_exitstatus task_upid, node
+						exit_status = get_task_exitstatus task_upid
 						exit_status.nil? ? raise(VagrantPlugins::Proxmox::ProxmoxTaskNotFinished) : exit_status
 					end
 				rescue VagrantPlugins::Proxmox::ProxmoxTaskNotFinished
@@ -84,30 +89,30 @@ module VagrantPlugins
 			def delete_vm(node:, vm_id:)
 				vm_type = get_vm_type node: node, vm_id: vm_id
 				response = delete "/nodes/#{node}/#{vm_type}/#{vm_id}"
-				wait_for_completion task_response: response, node: node, timeout_message: 'vagrant_proxmox.errors.destroy_vm_timeout'
+				wait_for_completion task_response: response, timeout_message: 'vagrant_proxmox.errors.destroy_vm_timeout'
 			end
 
 			def create_vm(node:, vm_type:, params:)
 				response = post "/nodes/#{node}/#{vm_type}", params
-				wait_for_completion task_response: response, node: node, timeout_message: 'vagrant_proxmox.errors.create_vm_timeout'
+				wait_for_completion task_response: response, timeout_message: 'vagrant_proxmox.errors.create_vm_timeout'
 			end
 
 			def start_vm(node:, vm_id:)
 				vm_type = get_vm_type node: node, vm_id: vm_id
 				response = post "/nodes/#{node}/#{vm_type}/#{vm_id}/status/start", nil
-				wait_for_completion task_response: response, node: node, timeout_message: 'vagrant_proxmox.errors.start_vm_timeout'
+				wait_for_completion task_response: response, timeout_message: 'vagrant_proxmox.errors.start_vm_timeout'
 			end
 
 			def stop_vm(node:, vm_id:)
 				vm_type = get_vm_type node: node, vm_id: vm_id
 				response = post "/nodes/#{node}/#{vm_type}/#{vm_id}/status/stop", nil
-				wait_for_completion task_response: response, node: node, timeout_message: 'vagrant_proxmox.errors.stop_vm_timeout'
+				wait_for_completion task_response: response, timeout_message: 'vagrant_proxmox.errors.stop_vm_timeout'
 			end
 
 			def shutdown_vm(node:, vm_id:)
 				vm_type = get_vm_type node: node, vm_id: vm_id
 				response = post "/nodes/#{node}/#{vm_type}/#{vm_id}/status/shutdown", nil
-				wait_for_completion task_response: response, node: node, timeout_message: 'vagrant_proxmox.errors.shutdown_vm_timeout'
+				wait_for_completion task_response: response, timeout_message: 'vagrant_proxmox.errors.shutdown_vm_timeout'
 			end
 
 			def get_free_vm_id
@@ -122,7 +127,7 @@ module VagrantPlugins
 				unless is_file_in_storage? filename: file, node: node, storage: storage
 					res = post "/nodes/#{node}/storage/#{storage}/upload", content: content_type,
 										 filename: File.new(file, 'rb'), node: node, storage: storage
-					wait_for_completion task_response: res, node: node, timeout_message: 'vagrant_proxmox.errors.upload_timeout'
+					wait_for_completion task_response: res, timeout_message: 'vagrant_proxmox.errors.upload_timeout'
 				end
 			end
 
@@ -142,7 +147,8 @@ module VagrantPlugins
 			end
 
 			private
-			def get_task_exitstatus task_upid, node
+			def get_task_exitstatus task_upid
+				node = /UPID:(.*?):/.match(task_upid)[1]
 				response = get "/nodes/#{node}/tasks/#{task_upid}/status"
 				response[:data][:exitstatus]
 			end

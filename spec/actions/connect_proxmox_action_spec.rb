@@ -25,6 +25,7 @@ module VagrantPlugins::Proxmox
 				env[:machine].provider_config.vm_id_range = 500..555
 				env[:machine].provider_config.task_timeout = 123
 				env[:machine].provider_config.task_status_check_interval = 5
+				env[:machine].provider_config.imgcopy_timeout = 99
 				allow_any_instance_of(Connection).to receive :login
 			end
 
@@ -40,6 +41,7 @@ module VagrantPlugins::Proxmox
 				specify { expect(connection.vm_id_range).to eq(500..555) }
 				specify { expect(connection.task_timeout).to eq(123) }
 				specify { expect(connection.task_status_check_interval).to eq(5) }
+				specify { expect(connection.imgcopy_timeout).to eq(99) }
 			end
 
 			it 'should call the login function with credentials from configuration' do
