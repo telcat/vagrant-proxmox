@@ -30,6 +30,8 @@ module VagrantPlugins
 												description: "#{config.vm_name_prefix}#{env[:machine].name}"}
 							params[:ip_address] = get_machine_ip_address(env) if get_machine_ip_address(env)
 						elsif config.vm_type == :qemu
+							network = 'e1000,bridge=vmbr0'
+							network = "e1000=#{get_machine_macaddress(env)},bridge=vmbr0" if get_machine_macaddress(env)
 							params = {vmid: vm_id,
 												name: env[:machine].config.vm.hostname || env[:machine].name.to_s,
 												ostype: config.qemu_os,
@@ -38,7 +40,7 @@ module VagrantPlugins
 												sockets: 1,
 												cores: 1,
 												memory: config.vm_memory,
-												net0: 'e1000,bridge=vmbr0',
+												net0: network,
 												description: "#{config.vm_name_prefix}#{env[:machine].name}"}
 						end
 

@@ -15,6 +15,11 @@ module VagrantPlugins
 				end
 
 				protected
+				def get_machine_macaddress env
+					env[:machine].config.vm.networks.select { |type, _| type == :public_network }.first[1][:macaddress] rescue nil
+				end
+
+				protected
 				def connection env
 					env[:proxmox_connection]
 				end

@@ -125,6 +125,26 @@ module VagrantPlugins::Proxmox
 							action.call env
 						end
 					end
+
+					context 'with predefined network settings' do
+						before { allow(env[:machine].config.vm).to receive(:networks) { [[:public_network, {ip: '127.0.0.1', macaddress: 'aa:bb:cc:dd:ee:ff'}]] } }
+						specify do
+							expect(connection).to receive(:create_vm).
+																			with(node: 'localhost',
+																					 vm_type: :qemu,
+																					 params: {vmid: 100,
+																										name: 'machine',
+																										ostype: :l26,
+																										ide2: 'local:iso/isofile.iso,media=cdrom',
+																										sata0: 'raid:30,format=qcow2',
+																										sockets: 1,
+																										cores: 1,
+																										net0: 'e1000=aa:bb:cc:dd:ee:ff,bridge=vmbr0',
+																										memory: 256,
+																										description: 'vagrant_test_machine'})
+							action.call env
+						end
+					end
 				end
 			end
 
