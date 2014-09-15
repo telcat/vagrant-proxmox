@@ -14,9 +14,9 @@ and provision Proxmox virtual machines.
 
 ## Limitations
 
-* Only OpenVZ containers are currently supported
-* You need a Vagrant compatible OpenVZ template
-* Only routed network mode is currently supported
+* For OpenVZ containers you need a Vagrant compatible OpenVZ template
+* For OpenVZ containers only routed network mode is currently supported
+* For KVM machines the ISO file needs to be a Vagrant compatible live system or automatic installation
 
 ## Installation
 
@@ -60,7 +60,7 @@ Vagrant.configure('2') do |config|
 end
 ```
 
-If you want kvm the Vagrantfile could look as follows:
+If you want KVM the Vagrantfile could look as follows:
 
 ```
 Vagrant.configure('2') do |config|
@@ -90,7 +90,7 @@ end
 
 For the meaning of the various options, refer to the `Options` section below.
 
-You need an OpenVZ template that contains a vagrant user supplied with the default Vagrant SSH keys.
+You need an OpenVZ template or KVM ISO that contains a vagrant user supplied with the default Vagrant SSH keys.
 You can download an example Ubuntu based template [here](https://www.dropbox.com/s/vuzywdosxhjjsag/vagrant-proxmox-ubuntu-12.tar.gz).
 
 Finally run `vagrant up --provider=proxmox` to create and start the new OpenVZ container.
