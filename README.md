@@ -36,19 +36,19 @@ First install the provided dummy vagrant box:
 $ vagrant box add dummy dummy_box/dummy.box
 ```
 
-Then for an openvz container create a Vagrantfile that looks like the following:
+Then for an openvz container create a Vagrantfile that looks like the following (note that you might have to add "@pam" to your username if you're getting a "401 Unauthorized" error):
 
 ```
 Vagrant.configure('2') do |config|
 
 	config.vm.provider :proxmox do |proxmox|
-		proxmox.endpoint = 'https://proxmox.example.com/api2/json'
-		proxmox.user_name = 'vagrant'
-		proxmox.password = 'password'
+		proxmox.endpoint = 'https://your.proxmox.server:8006/api2/json'
+		proxmox.user_name = 'proxmox_username@pam'
+		proxmox.password = 'proxmox_password'
 		proxmox.vm_id_range = 900..910
 		proxmox.vm_name_prefix = 'vagrant_'
+		proxmox.openvz_os_template = 'local:vztmpl/vagrant-proxmox-ubuntu-12.tar.gz'
 		proxmox.vm_type = :openvz
-        proxmox.openvz_os_template = 'local:vztmpl/template.tar.gz'
 		proxmox.vm_memory = 256
 	end
 
