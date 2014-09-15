@@ -14,7 +14,7 @@ module VagrantPlugins
 					env[:ui].info I18n.t('vagrant_proxmox.starting_vm')
 					begin
 						node, vm_id = env[:machine].id.split '/'
-						exit_status = connection(env).start_vm node: node, vm_id: vm_id
+						exit_status = connection(env).start_vm vm_id
 						exit_status == 'OK' ? exit_status : raise(VagrantPlugins::Proxmox::Errors::ProxmoxTaskFailed, proxmox_exit_status: exit_status)
 					rescue StandardError => e
 						raise VagrantPlugins::Proxmox::Errors::VMStartError, proxmox_exit_status: e.message

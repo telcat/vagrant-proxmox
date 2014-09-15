@@ -18,6 +18,10 @@ module VagrantPlugins::Proxmox
 		let(:task_timeout) { 40 }
 		let(:task_status_check_interval) { 5 }
 		let(:imgcopy_timeout) { 85 }
+		let(:vm_type) { '' }
+		let(:node) { 'localhost' }
+		let(:machine_id) { '100' }
+		let(:vm_info) { {type: vm_type, node: node, id: machine_id} }
 
 		subject(:connection) { Connection.new api_url, connection_opts }
 
@@ -58,7 +62,7 @@ module VagrantPlugins::Proxmox
 			end
 
 			context 'with custom values' do
-				let(:connection_opts) { {vm_id_range: (500..599), task_timeout: 90, task_status_check_interval: 3, imgcopy_timeout: 83 } }
+				let(:connection_opts) { {vm_id_range: (500..599), task_timeout: 90, task_status_check_interval: 3, imgcopy_timeout: 83} }
 
 				describe '#vm_id_range' do
 					subject { super().vm_id_range }
@@ -140,11 +144,9 @@ module VagrantPlugins::Proxmox
 		describe '#get_vm_state' do
 
 			let(:status) { '' }
-			let(:machine_id) { '' }
-			let(:vm_type) { '' }
 
 			before do
-				allow(connection).to receive_messages :get_vm_type => vm_type
+				allow(connection).to receive_messages :get_vm_info => vm_info
 				allow(RestClient).to receive(:get).with("#{api_url}/nodes/localhost/#{vm_type}/#{machine_id}/status/current", anything).
 															 and_return({data: {status: status}}.to_json)
 			end
@@ -152,24 +154,23 @@ module VagrantPlugins::Proxmox
 			context 'when the machine is an openvz container' do
 
 				let(:vm_type) { 'openvz' }
-				let(:machine_id) { 100 }
 
 				it 'should request a machine state' do
 					expect(RestClient).to receive(:get).with("#{api_url}/nodes/localhost/openvz/100/status/current", anything)
-					connection.get_vm_state(node: 'localhost', vm_id: 100)
+					connection.get_vm_state(100)
 				end
 
 				context 'when the machine is stopped' do
 					let(:status) { :stopped }
 					it 'should return :stopped' do
-						expect(connection.get_vm_state(node: 'localhost', vm_id: 100)).to eq(:stopped)
+						expect(connection.get_vm_state(100)).to eq(:stopped)
 					end
 				end
 
 				context 'when the machine is running' do
 					let(:status) { :running }
 					it 'should return :running' do
-						expect(connection.get_vm_state(node: 'localhost', vm_id: 100)).to eq(:running)
+						expect(connection.get_vm_state(100)).to eq(:running)
 					end
 				end
 			end
@@ -177,24 +178,23 @@ module VagrantPlugins::Proxmox
 			context 'when the machine is a qemu emulation' do
 
 				let(:vm_type) { 'qemu' }
-				let(:machine_id) { 102 }
 
 				it 'should request a machine state' do
-					expect(RestClient).to receive(:get).with("#{api_url}/nodes/localhost/qemu/102/status/current", anything)
-					connection.get_vm_state(node: 'localhost', vm_id: 102)
+					expect(RestClient).to receive(:get).with("#{api_url}/nodes/localhost/qemu/100/status/current", anything)
+					connection.get_vm_state(100)
 				end
 
 				context 'when the machine is stopped' do
 					let(:status) { :stopped }
 					it 'should return :stopped' do
-						expect(connection.get_vm_state(node: 'localhost', vm_id: 102)).to eq(:stopped)
+						expect(connection.get_vm_state(100)).to eq(:stopped)
 					end
 				end
 
 				context 'when the machine is running' do
 					let(:status) { :running }
 					it 'should return :running' do
-						expect(connection.get_vm_state(node: 'localhost', vm_id: 102)).to eq(:running)
+						expect(connection.get_vm_state(100)).to eq(:running)
 					end
 				end
 			end
@@ -204,7 +204,7 @@ module VagrantPlugins::Proxmox
 				before { allow(RestClient).to receive(:get).and_raise RestClient::InternalServerError }
 
 				it 'should return :not_created' do
-					expect(connection.get_vm_state(node: 'localhost', vm_id: 102)).to eq(:not_created)
+					expect(connection.get_vm_state(100)).to eq(:not_created)
 				end
 			end
 		end
@@ -267,23 +267,10 @@ module VagrantPlugins::Proxmox
 					expect { connection.send(:wait_for_completion, task_response: task_response, timeout_message: '') }.to raise_error VagrantPlugins::Proxmox::Errors::Timeout
 				end
 
-				context 'when it is a regular task' do
-
-					it 'should wait out the task_timeout' do
-						connection.send(:wait_for_completion, task_response: task_response, timeout_message: '') rescue nil
-						expect(Time).to have_elapsed task_timeout.seconds
-					end
-
-					context 'when it is an upload task' do
-
-						let(:task_upid) { 'UPID:localhost:0000F6EF:00F8E35F:E268CD3B:imgcopy:100:vagrant@pve:' }
-
-						it 'should wait out the task_timeout' do
-							connection.send(:wait_for_completion, task_response: task_response, timeout_message: '') rescue nil
-							expect(Time).to have_elapsed imgcopy_timeout.seconds
-						end
-					end
-
+				it 'should check the task status a given number of times' do
+					task_iterations = task_timeout / task_status_check_interval + 1
+					expect(connection).to receive(:get_task_exitstatus).exactly(task_iterations).times
+					connection.send(:wait_for_completion, task_response: task_response, timeout_message: '') rescue nil
 				end
 
 				it 'should check the task status a given number of times' do
@@ -291,9 +278,26 @@ module VagrantPlugins::Proxmox
 					expect(connection).to receive(:get_task_exitstatus).exactly(task_iterations).times
 					connection.send(:wait_for_completion, task_response: task_response, timeout_message: '') rescue nil
 				end
+
+				context 'when it is a regular task' do
+
+					it 'should wait out the task_timeout' do
+						connection.send(:wait_for_completion, task_response: task_response, timeout_message: '') rescue nil
+						expect(Time).to have_elapsed task_timeout.seconds
+					end
+				end
+
+				context 'when it is an upload task' do
+
+					let(:task_upid) { 'UPID:localhost:0000F6EF:00F8E35F:E268CD3B:imgcopy:100:vagrant@pve:' }
+
+					it 'should wait out the imgcopy_timeout' do
+						connection.send(:wait_for_completion, task_response: task_response, timeout_message: '') rescue nil
+						expect(Time).to have_elapsed imgcopy_timeout.seconds
+					end
+				end
 			end
 		end
-
 
 		describe '#get_task_exitstatus' do
 
@@ -323,7 +327,7 @@ module VagrantPlugins::Proxmox
 			before do
 				allow(connection).to receive_messages :delete => {data: 'task_id'}.to_json
 				allow(connection).to receive_messages :wait_for_completion => 'OK'
-				allow(connection).to receive_messages :get_vm_type => vm_type
+				allow(connection).to receive_messages :get_vm_info => vm_info
 			end
 
 			context 'when the machine is an openvz container' do
@@ -332,16 +336,16 @@ module VagrantPlugins::Proxmox
 
 				it 'should call delete with the node and vm as parameter' do
 					expect(connection).to receive(:delete).with("/nodes/localhost/openvz/100")
-					connection.delete_vm node: 'localhost', vm_id: 100
+					connection.delete_vm 100
 				end
 
 				it 'waits for completion of the server task' do
 					expect(connection).to receive(:wait_for_completion)
-					connection.delete_vm node: 'localhost', vm_id: 100
+					connection.delete_vm 100
 				end
 
 				it 'should return the task exit status' do
-					expect(connection.delete_vm(node: 'localhost', vm_id: 100)).to eq('OK')
+					expect(connection.delete_vm(100)).to eq('OK')
 				end
 			end
 
@@ -350,17 +354,17 @@ module VagrantPlugins::Proxmox
 				let(:vm_type) { 'qemu' }
 
 				it 'should call delete with the node and vm as parameter' do
-					expect(connection).to receive(:delete).with("/nodes/localhost/qemu/102")
-					connection.delete_vm node: 'localhost', vm_id: 102
+					expect(connection).to receive(:delete).with("/nodes/localhost/qemu/100")
+					connection.delete_vm 100
 				end
 
 				it 'waits for completion of the server task' do
 					expect(connection).to receive(:wait_for_completion)
-					connection.delete_vm node: 'localhost', vm_id: 102
+					connection.delete_vm 100
 				end
 
 				it 'should return the task exit status' do
-					expect(connection.delete_vm(node: 'localhost', vm_id: 102)).to eq('OK')
+					expect(connection.delete_vm(100)).to eq('OK')
 				end
 			end
 		end
@@ -371,11 +375,16 @@ module VagrantPlugins::Proxmox
 				allow(RestClient).to receive(:get).with("#{api_url}/cluster/resources?type=vm", anything).
 															 and_return({data: vm_list}.to_json)
 			end
-			let(:vm_list) { [{node: 'node', id: 'openvz/100'}, {node: 'anothernode', id: 'qemu/101'},
-											 {node: 'node', id: 'qemu/102'}, {node: 'anothernode', id: 'openvz/103'}] }
+			let(:vm_list) { [{node: 'node', id: 'openvz/100'}, {node: 'anothernode', id: 'qemu/101'}] }
 
-			it 'should return the correct vm_type' do
-				expect(connection.send(:get_vm_type, node: 'node', vm_id: 100)).to eq 'openvz'
+			it 'should return the correct vm_information' do
+				expect(connection.send(:get_vm_info, 101)).to eq({id: 101, node: 'anothernode', type: 'qemu'})
+			end
+
+			context 'when the vm is not found' do
+				it 'should return nil' do
+					expect(connection.send(:get_vm_info, 105)).to be_nil
+				end
 			end
 		end
 
@@ -488,12 +497,19 @@ module VagrantPlugins::Proxmox
 
 		describe '#start_vm' do
 
-			let(:vm_type) { '' }
-
 			before do
 				allow(connection).to receive_messages :post => {data: 'task_id'}.to_json
 				allow(connection).to receive_messages :wait_for_completion => 'OK'
-				allow(connection).to receive_messages :get_vm_type => vm_type
+				allow(connection).to receive_messages :get_vm_info => vm_info
+			end
+
+			it 'waits for completion of the server task' do
+				expect(connection).to receive(:wait_for_completion)
+				connection.start_vm '100'
+			end
+
+			it 'should return the task exit status' do
+				expect(connection.start_vm('100')).to eq('OK')
 			end
 
 			context 'when the machine is an openvz container' do
@@ -502,7 +518,7 @@ module VagrantPlugins::Proxmox
 
 				it 'should call post with the correct parameters' do
 					expect(connection).to receive(:post).with("/nodes/localhost/openvz/100/status/start", nil)
-					connection.start_vm node: 'localhost', vm_id: '100'
+					connection.start_vm '100'
 				end
 			end
 
@@ -511,29 +527,27 @@ module VagrantPlugins::Proxmox
 				let(:vm_type) { 'qemu' }
 
 				it 'should call post with the correct parameters' do
-					expect(connection).to receive(:post).with("/nodes/localhost/qemu/102/status/start", nil)
-					connection.start_vm node: 'localhost', vm_id: '102'
+					expect(connection).to receive(:post).with("/nodes/localhost/qemu/100/status/start", nil)
+					connection.start_vm '100'
 				end
-			end
-
-			it 'waits for completion of the server task' do
-				expect(connection).to receive(:wait_for_completion)
-				connection.start_vm node: 'localhost', vm_id: '100'
-			end
-
-			it 'should return the task exit status' do
-				expect(connection.start_vm(node: 'localhost', vm_id: '100')).to eq('OK')
 			end
 		end
 
 		describe '#stop_vm' do
 
-			let(:vm_type) { '' }
-
 			before do
 				allow(connection).to receive_messages :post => {data: 'task_id'}.to_json
 				allow(connection).to receive_messages :wait_for_completion => 'OK'
-				allow(connection).to receive_messages :get_vm_type => vm_type
+				allow(connection).to receive_messages :get_vm_info => vm_info
+			end
+
+			it 'waits for completion of the server task' do
+				expect(connection).to receive(:wait_for_completion)
+				connection.stop_vm '100'
+			end
+
+			it 'should return the task exit status' do
+				expect(connection.stop_vm('100')).to eq('OK')
 			end
 
 			context 'when the machine is an openvz container' do
@@ -542,7 +556,7 @@ module VagrantPlugins::Proxmox
 
 				it 'should call post with the correct parameters' do
 					expect(connection).to receive(:post).with("/nodes/localhost/openvz/100/status/stop", nil)
-					connection.stop_vm node: 'localhost', vm_id: '100'
+					connection.stop_vm '100'
 				end
 			end
 
@@ -551,29 +565,27 @@ module VagrantPlugins::Proxmox
 				let(:vm_type) { 'qemu' }
 
 				it 'should call post with the correct parameters' do
-					expect(connection).to receive(:post).with("/nodes/localhost/qemu/102/status/stop", nil)
-					connection.stop_vm node: 'localhost', vm_id: '102'
+					expect(connection).to receive(:post).with("/nodes/localhost/qemu/100/status/stop", nil)
+					connection.stop_vm '100'
 				end
-			end
-
-			it 'waits for completion of the server task' do
-				expect(connection).to receive(:wait_for_completion)
-				connection.stop_vm node: 'localhost', vm_id: '100'
-			end
-
-			it 'should return the task exit status' do
-				expect(connection.stop_vm(node: 'localhost', vm_id: '100')).to eq('OK')
 			end
 		end
 
 		describe '#shutdown_vm' do
 
-			let(:vm_type) { '' }
-
 			before do
 				allow(connection).to receive_messages :post => {data: 'task_id'}.to_json
 				allow(connection).to receive_messages :wait_for_completion => 'OK'
-				allow(connection).to receive_messages :get_vm_type => vm_type
+				allow(connection).to receive_messages :get_vm_info => vm_info
+			end
+
+			it 'waits for completion of the server task' do
+				expect(connection).to receive(:wait_for_completion)
+				connection.shutdown_vm '100'
+			end
+
+			it 'should return the task exit status' do
+				expect(connection.shutdown_vm('100')).to eq('OK')
 			end
 
 			context 'when the machine is an openvz container' do
@@ -582,7 +594,7 @@ module VagrantPlugins::Proxmox
 
 				it 'should call post with the correct parameters' do
 					expect(connection).to receive(:post).with("/nodes/localhost/openvz/100/status/shutdown", nil)
-					connection.shutdown_vm node: 'localhost', vm_id: '100'
+					connection.shutdown_vm '100'
 				end
 			end
 
@@ -590,18 +602,9 @@ module VagrantPlugins::Proxmox
 
 				let(:vm_type) { 'qemu' }
 				it 'should call post with the correct parameters' do
-					expect(connection).to receive(:post).with("/nodes/localhost/qemu/102/status/shutdown", nil)
-					connection.shutdown_vm node: 'localhost', vm_id: '102'
+					expect(connection).to receive(:post).with("/nodes/localhost/qemu/100/status/shutdown", nil)
+					connection.shutdown_vm '100'
 				end
-			end
-
-			it 'waits for completion of the server task' do
-				expect(connection).to receive(:wait_for_completion)
-				connection.shutdown_vm node: 'localhost', vm_id: '100'
-			end
-
-			it 'should return the task exit status' do
-				expect(connection.shutdown_vm(node: 'localhost', vm_id: '100')).to eq('OK')
 			end
 		end
 
@@ -633,16 +636,15 @@ module VagrantPlugins::Proxmox
 				expect(connection.upload_file file, content_type: 'vztmpl', node: 'localhost', storage: 'local').to eq('OK')
 			end
 
-			context 'when the template file already exists in storage of the proxmox node' do
+			context 'when the file already exists in storage of the proxmox node' do
 
 				let (:storage_file_list) { [{volid: 'local:vztmpl/template.tar.gz'}] }
 
-				it 'should not upload the template file' do
+				it 'should not upload the file' do
 					expect(connection).not_to receive(:post).with('/nodes/localhost/storage/local/upload', anything())
 					connection.upload_file file, content_type: 'vztmpl', node: 'localhost', storage: 'local'
 				end
 			end
-
 		end
 
 		describe '#list_storage_files' do

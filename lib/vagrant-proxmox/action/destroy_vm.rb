@@ -15,7 +15,7 @@ module VagrantPlugins
 
 					begin
 						node, vm_id = env[:machine].id.split '/'
-						exit_status = connection(env).delete_vm node: node, vm_id: vm_id
+						exit_status = connection(env).delete_vm vm_id
 						exit_status == 'OK' ? exit_status : raise(VagrantPlugins::Proxmox::Errors::ProxmoxTaskFailed, proxmox_exit_status: exit_status)
 					rescue StandardError => e
 						raise VagrantPlugins::Proxmox::Errors::VMDestroyError, proxmox_exit_status: e.message

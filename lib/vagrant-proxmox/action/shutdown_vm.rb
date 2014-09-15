@@ -14,7 +14,7 @@ module VagrantPlugins
 					env[:ui].info I18n.t('vagrant_proxmox.shut_down_vm')
 					begin
 						node, vm_id = env[:machine].id.split '/'
-						exit_status = connection(env).shutdown_vm node: node, vm_id: vm_id
+						exit_status = connection(env).shutdown_vm vm_id
 						exit_status == 'OK' ? exit_status : raise(VagrantPlugins::Proxmox::Errors::ProxmoxTaskFailed, proxmox_exit_status: exit_status)
 					rescue StandardError => e
 						raise VagrantPlugins::Proxmox::Errors::VMShutdownError, proxmox_exit_status: e.message

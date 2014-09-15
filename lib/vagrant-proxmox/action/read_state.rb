@@ -16,7 +16,7 @@ module VagrantPlugins
 						env[:machine_state_id] =
 							if env[:machine].id
 								node, vm_id = env[:machine].id.split '/'
-								env[:proxmox_connection].get_vm_state node: node, vm_id: vm_id
+								env[:proxmox_connection].get_vm_state vm_id
 							else
 								:not_created
 							end

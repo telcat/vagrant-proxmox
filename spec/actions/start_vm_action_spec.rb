@@ -27,7 +27,7 @@ module VagrantPlugins::Proxmox
 			it_behaves_like 'a proxmox action call'
 
 			it 'should call the start_vm function of connection' do
-				expect(connection).to receive(:start_vm).with node: 'localhost', vm_id: '100'
+				expect(connection).to receive(:start_vm).with '100'
 				action.call env
 			end
 

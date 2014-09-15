@@ -105,6 +105,7 @@ describe VagrantPlugins::Proxmox::Config do
 		let(:proxmox_openvz_template_file) { '' }
 		let(:proxmox_vm_type) { 'proxmox.vm_type = :openvz' }
 		let(:proxmox_qemu_iso_file) { '' }
+		let(:proxmox_qemu_disk_size) { '' }
 		let(:vagrantfile_content) { "
 Vagrant.configure('2') do |config|
 	config.vm.provider :proxmox do |proxmox|
@@ -116,6 +117,7 @@ Vagrant.configure('2') do |config|
 		#{proxmox_openvz_template_file}
 		#{proxmox_qemu_iso}
 		#{proxmox_qemu_iso_file}
+		#{proxmox_qemu_disk_size}
 		proxmox.vm_id_range = 900..910
 		proxmox.vm_name_prefix = 'vagrant_test_'
 		proxmox.vm_memory = 256
@@ -306,28 +308,43 @@ end
 
 		describe 'is finalized' do
 
-			context 'a template file was specified' do
+			context 'with vm_type=:openvz' do
 
-				let(:proxmox_openvz_os_template) { '' }
-				let(:proxmox_openvz_template_file) { "proxmox.openvz_template_file = '/my/dir/mytemplate.tar.gz'" }
+				context 'a template file was specified' do
 
-				it 'should set the openvz_os_template to the uploaded template file' do
-					expect(config.openvz_os_template).to eq('local:vztmpl/mytemplate.tar.gz')
+					let(:proxmox_openvz_os_template) { '' }
+					let(:proxmox_openvz_template_file) { "proxmox.openvz_template_file = '/my/dir/mytemplate.tar.gz'" }
+
+					it 'should set the openvz_os_template to the uploaded template file' do
+						expect(config.openvz_os_template).to eq('local:vztmpl/mytemplate.tar.gz')
+					end
 				end
+
 			end
 
-			context 'an iso file was specified' do
+			context 'with vm_type=:qemu' do
 
-				let(:proxmox_openvz_os_template) { '' }
-				let(:proxmox_openvz_template_file) { '' }
-				let(:proxmox_qemu_iso) { '' }
-				let(:proxmox_qemu_iso_file) { "proxmox.qemu_iso_file = '/my/dir/myiso.iso'" }
+				context 'an iso file was specified' do
 
-				it 'should set the openvz_os_template to the uploaded template file' do
-					expect(config.qemu_iso).to eq('local:iso/myiso.iso')
+					let(:proxmox_openvz_os_template) { '' }
+					let(:proxmox_openvz_template_file) { '' }
+					let(:proxmox_qemu_iso) { '' }
+					let(:proxmox_qemu_iso_file) { "proxmox.qemu_iso_file = '/my/dir/myiso.iso'" }
+
+					it 'should set the openvz_os_template to the uploaded template file' do
+						expect(config.qemu_iso).to eq('local:iso/myiso.iso')
+					end
+				end
+
+				context 'when the disk size contains a unit' do
+
+					let (:proxmox_qemu_disk_size) {"proxmox.qemu_disk_size = '15G' "}
+
+					it 'should be converted into gigabytes' do
+						expect(config.qemu_disk_size).to eq('15')
+					end
 				end
 			end
-
 		end
 	end
 end

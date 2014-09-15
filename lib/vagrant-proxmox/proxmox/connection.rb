@@ -53,11 +53,11 @@ module VagrantPlugins
 				nodelist[:data].map { |n| n[:node] }
 			end
 
-			def get_vm_state(node:, vm_id:)
-				vm_type = get_vm_type node: node, vm_id: vm_id
-				if vm_type
+			def get_vm_state vm_id
+				vm_info = get_vm_info vm_id
+				if vm_info
 					begin
-						response = get "/nodes/#{node}/#{vm_type}/#{vm_id}/status/current"
+						response = get "/nodes/#{vm_info[:node]}/#{vm_info[:type]}/#{vm_id}/status/current"
 						states = {'running' => :running,
 											'stopped' => :stopped}
 						states[response[:data][:status]]
@@ -86,9 +86,9 @@ module VagrantPlugins
 				end
 			end
 
-			def delete_vm(node:, vm_id:)
-				vm_type = get_vm_type node: node, vm_id: vm_id
-				response = delete "/nodes/#{node}/#{vm_type}/#{vm_id}"
+			def delete_vm vm_id
+				vm_info = get_vm_info vm_id
+				response = delete "/nodes/#{vm_info[:node]}/#{vm_info[:type]}/#{vm_id}"
 				wait_for_completion task_response: response, timeout_message: 'vagrant_proxmox.errors.destroy_vm_timeout'
 			end
 
@@ -97,21 +97,21 @@ module VagrantPlugins
 				wait_for_completion task_response: response, timeout_message: 'vagrant_proxmox.errors.create_vm_timeout'
 			end
 
-			def start_vm(node:, vm_id:)
-				vm_type = get_vm_type node: node, vm_id: vm_id
-				response = post "/nodes/#{node}/#{vm_type}/#{vm_id}/status/start", nil
+			def start_vm vm_id
+				vm_info = get_vm_info vm_id
+				response = post "/nodes/#{vm_info[:node]}/#{vm_info[:type]}/#{vm_id}/status/start", nil
 				wait_for_completion task_response: response, timeout_message: 'vagrant_proxmox.errors.start_vm_timeout'
 			end
 
-			def stop_vm(node:, vm_id:)
-				vm_type = get_vm_type node: node, vm_id: vm_id
-				response = post "/nodes/#{node}/#{vm_type}/#{vm_id}/status/stop", nil
+			def stop_vm vm_id
+				vm_info = get_vm_info vm_id
+				response = post "/nodes/#{vm_info[:node]}/#{vm_info[:type]}/#{vm_id}/status/stop", nil
 				wait_for_completion task_response: response, timeout_message: 'vagrant_proxmox.errors.stop_vm_timeout'
 			end
 
-			def shutdown_vm(node:, vm_id:)
-				vm_type = get_vm_type node: node, vm_id: vm_id
-				response = post "/nodes/#{node}/#{vm_type}/#{vm_id}/status/shutdown", nil
+			def shutdown_vm vm_id
+				vm_info = get_vm_info vm_id
+				response = post "/nodes/#{vm_info[:node]}/#{vm_info[:type]}/#{vm_id}/status/shutdown", nil
 				wait_for_completion task_response: response, timeout_message: 'vagrant_proxmox.errors.shutdown_vm_timeout'
 			end
 
@@ -136,14 +136,16 @@ module VagrantPlugins
 				res[:data].map { |e| e[:volid] }
 			end
 
+			# This is called every time to retrieve the node and vm_type, hence on large
+			# installations this could be a huge amount of data. Probably an optimization
+			# with a buffer for the machine info could be considered.
 			private
-			def get_vm_type(node:, vm_id:)
+			def get_vm_info vm_id
 				response = get '/cluster/resources?type=vm'
-				vm_type = nil
-				response[:data].each do |m|
-					vm_type = /^(.*)\/(.*)$/.match(m[:id])[1] if m[:node] == node && (/^[a-z]*\/(.*)$/.match(m[:id])[1]).to_i == vm_id.to_i
-				end
-				vm_type
+				response[:data]
+				.select { |m| m[:id] =~ /^[a-z]*\/#{vm_id}$/ }
+				.map {|m|	{id: vm_id, type: /^(.*)\/(.*)$/.match(m[:id])[1], node: m[:node]}}
+				.first
 			end
 
 			private

@@ -20,30 +20,8 @@ module VagrantPlugins
 
 					begin
 						vm_id = connection(env).get_free_vm_id
-
-						if config.vm_type == :openvz
-							params = {vmid: vm_id,
-												ostemplate: config.openvz_os_template,
-												hostname: env[:machine].config.vm.hostname || env[:machine].name.to_s,
-												password: 'vagrant',
-												memory: config.vm_memory,
-												description: "#{config.vm_name_prefix}#{env[:machine].name}"}
-							params[:ip_address] = get_machine_ip_address(env) if get_machine_ip_address(env)
-						elsif config.vm_type == :qemu
-							network = 'e1000,bridge=vmbr0'
-							network = "e1000=#{get_machine_macaddress(env)},bridge=vmbr0" if get_machine_macaddress(env)
-							params = {vmid: vm_id,
-												name: env[:machine].config.vm.hostname || env[:machine].name.to_s,
-												ostype: config.qemu_os,
-												ide2: "#{config.qemu_iso},media=cdrom",
-												sata0: "raid:#{convert_disk_size_to_gigabyte config.qemu_disk_size},format=qcow2",
-												sockets: 1,
-												cores: 1,
-												memory: config.vm_memory,
-												net0: network,
-												description: "#{config.vm_name_prefix}#{env[:machine].name}"}
-						end
-
+						params = create_params_openvz(config, env, vm_id) if config.vm_type == :openvz
+						params = create_params_qemu(config, env, vm_id) if config.vm_type == :qemu
 						exit_status = connection(env).create_vm node: node, vm_type: config.vm_type, params: params
 						exit_status == 'OK' ? exit_status : raise(VagrantPlugins::Proxmox::Errors::ProxmoxTaskFailed, proxmox_exit_status: exit_status)
 					rescue StandardError => e
@@ -57,10 +35,31 @@ module VagrantPlugins
 				end
 
 				private
-				def convert_disk_size_to_gigabyte disk_size
-					case disk_size[-1]
-						when 'G'
-							disk_size[0..-2]
+				def create_params_qemu(config, env, vm_id)
+					network = 'e1000,bridge=vmbr0'
+					network = "e1000=#{get_machine_macaddress(env)},bridge=vmbr0" if get_machine_macaddress(env)
+					{vmid: vm_id,
+					 name: env[:machine].config.vm.hostname || env[:machine].name.to_s,
+					 ostype: config.qemu_os,
+					 ide2: "#{config.qemu_iso},media=cdrom",
+					 sata0: "raid:#{config.qemu_disk_size},format=qcow2",
+					 sockets: 1,
+					 cores: 1,
+					 memory: config.vm_memory,
+					 net0: network,
+					 description: "#{config.vm_name_prefix}#{env[:machine].name}"}
+				end
+
+				private
+				def create_params_openvz(config, env, vm_id)
+					{vmid: vm_id,
+					 ostemplate: config.openvz_os_template,
+					 hostname: env[:machine].config.vm.hostname || env[:machine].name.to_s,
+					 password: 'vagrant',
+					 memory: config.vm_memory,
+					 description: "#{config.vm_name_prefix}#{env[:machine].name}"}
+					.tap do |params|
+						params[:ip_address] = get_machine_ip_address(env) if get_machine_ip_address(env)
 					end
 				end
 			end

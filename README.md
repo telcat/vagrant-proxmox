@@ -36,7 +36,7 @@ First install the provided dummy vagrant box:
 $ vagrant box add dummy dummy_box/dummy.box
 ```
 
-Then create a Vagrantfile that looks like the following:
+Then for an openvz container create a Vagrantfile that looks like the following:
 
 ```
 Vagrant.configure('2') do |config|
@@ -54,6 +54,35 @@ Vagrant.configure('2') do |config|
 
 	config.vm.define :box, primary: true do |box|
  		box.vm.box = 'dummy'
+ 		box.vm.network :public_network, ip: '192.168.0.1'
+ 	end
+
+end
+```
+
+If you want kvm the Vagrantfile could look as follows:
+
+```
+Vagrant.configure('2') do |config|
+
+	config.vm.provider :proxmox do |proxmox|
+		proxmox.endpoint = 'https://proxmox.example.com/api2/json'
+		proxmox.user_name = 'vagrant'
+		proxmox.password = 'password'
+		proxmox.vm_id_range = 900..910
+        proxmox.vm_type = :qemu
+		proxmox.vm_name_prefix = 'vagrant_'
+        proxmox.qemu_os = :l26
+        proxmox.qemu_disk_size = '30G'
+        proxmox.qemu_iso_file = '/home/user/system.iso'
+        proxmox.vm_id_range = 900..910
+        proxmox.vm_name_prefix = 'vagrant_test_'
+        proxmox.vm_memory = 512
+	end
+
+	config.vm.define :box, primary: true do |box|
+ 		box.vm.box = 'dummy'
+ 		box.vm.network :public_network, ip: '192.168.0.1', macaddress: 'ff:aa:cc:dd:bb:ee'
  	end
 
 end

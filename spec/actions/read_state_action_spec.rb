@@ -30,7 +30,7 @@ module VagrantPlugins::Proxmox
 			end
 
 			it 'should call get_vm_state with the node and vm_id' do
-				expect(connection).to receive(:get_vm_state).with node: node, vm_id: vm_id
+				expect(connection).to receive(:get_vm_state).with vm_id
 				action.call env
 			end
 
