@@ -69,7 +69,7 @@ module VagrantPlugins
 				end
 			end
 
-			def wait_for_completion task_response: task_response, timeout_message: timeout_message
+			def wait_for_completion(task_response:, timeout_message:)
 				task_upid = task_response[:data]
 				timeout = task_timeout
 				task_type = /UPID:.*?:.*?:.*?:.*?:(.*)?:.*?:.*?:/.match(task_upid)[1]
@@ -144,7 +144,7 @@ module VagrantPlugins
 				response = get '/cluster/resources?type=vm'
 				response[:data]
 				.select { |m| m[:id] =~ /^[a-z]*\/#{vm_id}$/ }
-				.map {|m|	{id: vm_id, type: /^(.*)\/(.*)$/.match(m[:id])[1], node: m[:node]}}
+				.map { |m| {id: vm_id, type: /^(.*)\/(.*)$/.match(m[:id])[1], node: m[:node]} }
 				.first
 			end
 
