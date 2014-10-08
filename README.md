@@ -1,6 +1,6 @@
 # Vagrant Proxmox Provider
 
-This is a [Vagrant](http://www.vagrantup.com) 1.5+ plugin that adds a
+This is a [Vagrant](http://www.vagrantup.com) plugin that adds a
 [Proxmox](http://proxmox.com/) provider to Vagrant, allowing Vagrant to manage
 and provision Proxmox virtual machines.
 
@@ -17,6 +17,11 @@ and provision Proxmox virtual machines.
 * For OpenVZ containers you need a Vagrant compatible OpenVZ template
 * For OpenVZ containers only routed network mode is currently supported
 * For KVM machines the ISO file needs to be a Vagrant compatible live system or automatic installation
+
+## Requirements
+
+* Vagrant 1.5+
+* Ruby 2+
 
 ## Installation
 

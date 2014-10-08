@@ -1,6 +1,7 @@
 require 'vagrant-proxmox/proxmox/errors'
 require 'rest-client'
 require 'retryable'
+require 'required_parameters'
 
 # Fix wrong header unescaping in RestClient library.
 module RestClient
@@ -20,6 +21,8 @@ module VagrantPlugins
 	module Proxmox
 		class Connection
 
+			include RequiredParameters
+
 			attr_reader :api_url
 			attr_reader :ticket
 			attr_reader :csrf_token
@@ -36,7 +39,7 @@ module VagrantPlugins
 				@imgcopy_timeout = opts[:imgcopy_timeout] || 120
 			end
 
-			def login(username:, password:)
+			def login username: required('username'), password: required('password')
 				begin
 					response = post "/access/ticket", username: username, password: password
 					@ticket = response[:data][:ticket]
@@ -69,7 +72,7 @@ module VagrantPlugins
 				end
 			end
 
-			def wait_for_completion(task_response:, timeout_message:)
+			def wait_for_completion task_response: required('task_response'), timeout_message: required('timeout_message')
 				task_upid = task_response[:data]
 				timeout = task_timeout
 				task_type = /UPID:.*?:.*?:.*?:.*?:(.*)?:.*?:.*?:/.match(task_upid)[1]
@@ -92,7 +95,7 @@ module VagrantPlugins
 				wait_for_completion task_response: response, timeout_message: 'vagrant_proxmox.errors.destroy_vm_timeout'
 			end
 
-			def create_vm(node:, vm_type:, params:)
+			def create_vm node: required('node'), vm_type: required('node'), params: required('params')
 				response = post "/nodes/#{node}/#{vm_type}", params
 				wait_for_completion task_response: response, timeout_message: 'vagrant_proxmox.errors.create_vm_timeout'
 			end
@@ -123,7 +126,7 @@ module VagrantPlugins
 				free_vm_ids.empty? ? raise(VagrantPlugins::Proxmox::Errors::NoVmIdAvailable) : free_vm_ids.first
 			end
 
-			def upload_file(file, content_type:, node:, storage:)
+			def upload_file file, content_type: required('content_type'), node: required('node'), storage: required('storage')
 				unless is_file_in_storage? filename: file, node: node, storage: storage
 					res = post "/nodes/#{node}/storage/#{storage}/upload", content: content_type,
 										 filename: File.new(file, 'rb'), node: node, storage: storage
@@ -131,7 +134,7 @@ module VagrantPlugins
 				end
 			end
 
-			def list_storage_files(node:, storage:)
+			def list_storage_files node: required('node'), storage: required('storage')
 				res = get "/nodes/#{node}/storage/#{storage}/content"
 				res[:data].map { |e| e[:volid] }
 			end
@@ -209,7 +212,7 @@ module VagrantPlugins
 			end
 
 			private
-			def is_file_in_storage?(filename:, node:, storage:)
+			def is_file_in_storage? filename: required('filename'), node: required('node'), storage: required('storage')
 				(list_storage_files node: node, storage: storage).find { |f| f =~ /#{File.basename filename}/ }
 			end
 		end

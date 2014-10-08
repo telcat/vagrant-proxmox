@@ -1,7 +1,7 @@
 require 'yaml'
 $:<<"./lib/"
 require 'rest-client'
-require 'vagrant-proxmox/proxmox/connection'
+# require 'vagrant-proxmox/proxmox/connection'
 require 'json'
 require 'vagrant-proxmox'
 require_relative 'features/support/vagrant_ui_mock.rb'
