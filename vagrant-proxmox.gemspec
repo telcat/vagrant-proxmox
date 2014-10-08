@@ -11,6 +11,7 @@ Gem::Specification.new do |spec|
 	spec.homepage = 'https://github.com/telcat/vagrant-proxmox'
 	spec.summary = 'Enables Vagrant to manage virtual machines on a Proxmox server.'
 	spec.description = 'Enables Vagrant to manage virtual machines on a Proxmox server.'
+	spec.required_ruby_version = '>= 2'
 
 	spec.add_runtime_dependency 'rest-client', '~> 1.6.7'
 	spec.add_runtime_dependency 'retryable', '~> 1.3.3'

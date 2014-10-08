@@ -20,12 +20,21 @@ RSpec::Core::RakeTask.new('spec_coverage') do |_|
 	ENV['RUN_WITH_COVERAGE'] = 'true'
 end
 
-task release: [:build, :spec_coverage] do
+task :release_local do
 	rake_config = YAML::load(File.read("#{ENV['HOME']}/.rake/rake.yml")) rescue {}
 	GeminaboxClient.new(rake_config['geminabox']['url']).push "#{gemspec.name}-#{gemspec.version}.gem", overwrite: true
 	puts "Gem #{gemspec.name} pushed to #{rake_config['geminabox']['url']}"
 end
 
+task :release_rubygems  do
+	`gem push "#{gemspec.name}-#{gemspec.version}.gem"`
+end
+
+task release_all: [:release_local, :release_rubygems]
+
+namespace :jenkins do
+	task job: [:build, :spec_coverage, :release_all]
+end
 
 namespace :test do
 
