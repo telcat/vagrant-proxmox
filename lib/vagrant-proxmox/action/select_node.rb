@@ -12,7 +12,11 @@ module VagrantPlugins
 				end
 
 				def call env
-					env[:proxmox_selected_node] = env[:proxmox_nodes].sample
+					if env[:machine].provider_config.selected_node and env[:proxmox_nodes].include?(env[:machine].provider_config.selected_node)
+						env[:proxmox_selected_node] = env[:machine].provider_config.selected_node
+					else
+						env[:proxmox_selected_node] = env[:proxmox_nodes].sample
+					end
 					next_action env
 				end
 
