@@ -5,6 +5,7 @@ require 'bundler/setup'
 require 'rubygems/gem_runner'
 require 'rspec/core/rake_task'
 require 'geminabox_client'
+require 'yaml'
 
 gemspec = eval(File.read 'vagrant-proxmox.gemspec')
 
