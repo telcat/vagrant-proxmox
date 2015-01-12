@@ -16,7 +16,7 @@ Feature: Use new iso file
           proxmox.qemu_disk_size = '30G'
 	      end
         config.vm.define :machine, primary: true do |machine|
-          machine.vm.box = 'b681e2bc-617b-4b35-94fb-edc92e1071b8'
+          machine.vm.box = 'b681e2bc-617b-4b35-94fa-edc92e1071b8'
           machine.vm.network :public_network, ip: '172.16.100.1', macaddress: 'aa:bb:cc:dd:ee:ff'
         end
       end
