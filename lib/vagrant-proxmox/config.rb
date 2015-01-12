@@ -7,6 +7,11 @@ module VagrantPlugins
 			# @return [String]
 			attr_accessor :endpoint
 
+			# The Proxmox preferred cluster node
+			#
+			# @return [String]
+			attr_accessor :selected_node
+
 			# The Proxmox user name
 			#
 			# @return [String]
@@ -94,6 +99,7 @@ module VagrantPlugins
 
 			def initialize
 				@endpoint = UNSET_VALUE
+				@selected_node = UNSET_VALUE
 				@user_name = UNSET_VALUE
 				@password = UNSET_VALUE
 				@vm_type = UNSET_VALUE
@@ -116,6 +122,7 @@ module VagrantPlugins
 			# This is the hook that is called to finalize the object before it is put into use.
 			def finalize!
 				@endpoint = nil if @endpoint == UNSET_VALUE
+				@selected_node = nil if @endpoint == UNSET_VALUE
 				@user_name = nil if @user_name == UNSET_VALUE
 				@password = nil if @password == UNSET_VALUE
 				@vm_type = nil if @vm_type == UNSET_VALUE
