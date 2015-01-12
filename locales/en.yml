@@ -71,6 +71,7 @@ en:
       no_qemu_iso_or_qemu_iso_file_specified_for_vm_type_qemu: "No qemu_iso or qemu_iso_file specified for vm_type=:qemu"
       no_qemu_os_specified_for_vm_type_qemu: "No qemu_os specified for vm_type=:qemu"
       no_qemu_disk_size_specified_for_vm_type_qemu: "No qemu_disk_size specified for vm_type=:qemu"
+      invalid_node_error: 'Invalid node specified: %{node}'
     not_created: 'The virtual machine is not created on the server!'
     rsync_folder: |-
           Rsyncing folder: %{hostpath} => %{guestpath}

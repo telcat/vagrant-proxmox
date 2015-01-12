@@ -54,6 +54,10 @@ module VagrantPlugins
 				error_key :ssh_error
 			end
 
+      class InvalidNodeError < VagrantProxmoxError
+        error_key :invalid_node_error
+      end
+
 		end
 	end
 end
