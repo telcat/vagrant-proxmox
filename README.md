@@ -120,6 +120,7 @@ Finally run `vagrant up --provider=proxmox` to create and start the new OpenVZ c
 * `qemu_iso` The qemu iso file to use for the virtual machine
 * `qemu_iso_file` The qemu iso file to upload and use for the virtual machine (can be specified instead of `qemu_iso`)
 * `qemu_disk_size` The qemu disk size to use for the virtual machine, e.g. '30G'
+* `selected_node` If specified, only this specific node is used to create machines 
 
 ## Build the plugin
 
