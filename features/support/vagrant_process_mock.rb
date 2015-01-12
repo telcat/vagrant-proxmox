@@ -7,7 +7,7 @@ module Vagrant
 			def self.execute *command, &block
 				if VagrantProcessMock.enabled
 					VagrantProcessMock.check_call command.join(' '), :local
-					OpenStruct.new exit_code: 0
+					OpenStruct.new exit_code: 0, stdout: ''
 				else
 					new(*command).execute(&block)
 				end

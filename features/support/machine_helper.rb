@@ -50,6 +50,7 @@ def stub_default_calls
 end
 
 def up_machine
+	stub_local_vagrant_call 'ps -o comm= 1'
 	@environment = Vagrant::Environment.new vagrantfile_name: 'dummy_box/Cucumber_Vagrantfile'
 	@environment.instance_variable_set :@ui, @ui
 	stub_machine_initialization
@@ -79,6 +80,7 @@ def add_dummy_box
 end
 
 def remove_dummy_box
+  stub_local_vagrant_call 'ps -o comm= 1'
 	@environment = Vagrant::Environment.new vagrantfile_name: 'dummy_box/Cucumber_Vagrantfile'
 	execute_vagrant_command :box, 'remove', 'b681e2bc-617b-4b35-94fa-edc92e1071b8'
 end
