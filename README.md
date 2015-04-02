@@ -79,6 +79,7 @@ Vagrant.configure('2') do |config|
 		proxmox.vm_name_prefix = 'vagrant_'
         proxmox.qemu_os = :l26
         proxmox.qemu_disk_size = '30G'
+        proxmox.qemu_storage = 'local'
         proxmox.qemu_iso_file = '/home/user/system.iso'
         proxmox.vm_id_range = 900..910
         proxmox.vm_name_prefix = 'vagrant_test_'
@@ -120,6 +121,7 @@ Finally run `vagrant up --provider=proxmox` to create and start the new OpenVZ c
 * `qemu_iso` The qemu iso file to use for the virtual machine
 * `qemu_iso_file` The qemu iso file to upload and use for the virtual machine (can be specified instead of `qemu_iso`)
 * `qemu_disk_size` The qemu disk size to use for the virtual machine, e.g. '30G'
+* `qemu_storage` Storage name to use for virtual machine (Default 'local')
 * `selected_node` If specified, only this specific node is used to create machines 
 
 ## Build the plugin
