@@ -97,6 +97,11 @@ module VagrantPlugins
 			# @return [String]
 			attr_accessor :qemu_disk_size
 
+			# The qemu storage to use
+			#
+			# @return [String]
+			attr_accessor :qemu_storage
+
 			def initialize
 				@endpoint = UNSET_VALUE
 				@selected_node = UNSET_VALUE
@@ -117,6 +122,7 @@ module VagrantPlugins
 				@qemu_iso = UNSET_VALUE
 				@qemu_iso_file = UNSET_VALUE
 				@qemu_disk_size = UNSET_VALUE
+				@qemu_storage = 'local'
 			end
 
 			# This is the hook that is called to finalize the object before it is put into use.
@@ -135,6 +141,7 @@ module VagrantPlugins
 				@qemu_iso = nil if @qemu_iso == UNSET_VALUE
 				@qemu_disk_size = nil if @qemu_disk_size == UNSET_VALUE
 				@qemu_disk_size = convert_disk_size_to_gigabyte @qemu_disk_size if @qemu_disk_size
+				@qemu_storage = nil if @qemu_storage == UNSET_VALUE
 			end
 
 			def validate machine
