@@ -42,7 +42,7 @@ module VagrantPlugins
 					 name: env[:machine].config.vm.hostname || env[:machine].name.to_s,
 					 ostype: config.qemu_os,
 					 ide2: "#{config.qemu_iso},media=cdrom",
-					 sata0: "raid:#{config.qemu_disk_size},format=qcow2",
+					 sata0: "#{config.qemu_storage}:#{config.qemu_disk_size},format=qcow2",
 					 sockets: 1,
 					 cores: 1,
 					 memory: config.vm_memory,
