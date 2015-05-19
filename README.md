@@ -75,14 +75,18 @@ Vagrant.configure('2') do |config|
 		proxmox.user_name = 'vagrant'
 		proxmox.password = 'password'
 		proxmox.vm_id_range = 900..910
-        proxmox.vm_type = :qemu
+		proxmox.vm_type = :qemu
 		proxmox.vm_name_prefix = 'vagrant_'
-        proxmox.qemu_os = :l26
-        proxmox.qemu_disk_size = '30G'
-        proxmox.qemu_iso_file = '/home/user/system.iso'
-        proxmox.vm_id_range = 900..910
-        proxmox.vm_name_prefix = 'vagrant_test_'
-        proxmox.vm_memory = 512
+		proxmox.qemu_os = :l26
+		proxmox.qemu_disk_size = '30G'
+		proxmox.qemu_storage = 'local'
+		proxmox.qemu_iso_file = '/home/user/system.iso'
+		proxmox.vm_name_prefix = 'vagrant_test_'
+		proxmox.qemu_cores = 1
+		proxmox.qemu_sockets = 1
+		proxmox.qemu_nic_model = 'virtio'
+		proxmox.qemu_bridge = 'vmbr0'
+		proxmox.vm_memory = 512
 	end
 
 	config.vm.define :box, primary: true do |box|
@@ -120,6 +124,11 @@ Finally run `vagrant up --provider=proxmox` to create and start the new OpenVZ c
 * `qemu_iso` The qemu iso file to use for the virtual machine
 * `qemu_iso_file` The qemu iso file to upload and use for the virtual machine (can be specified instead of `qemu_iso`)
 * `qemu_disk_size` The qemu disk size to use for the virtual machine, e.g. '30G'
+* `qemu_storage` The storage pool to use, i.e. the value of the `storage` key of the hash returned by `pvesh get /nodes/{node}/storage`, e.g. 'raid', 'local', 'cephstore'
+* `qemu_cores` The number of cores per socket available to the VM
+* `qemu_sockets` The number of CPU sockets available to the VM
+* `qemu_nic_model` which model of network interface card to use, default 'e1000'
+* `qemu_bridge` connect automatically to this bridge, default 'vmbr0'
 * `selected_node` If specified, only this specific node is used to create machines 
 
 ## Build the plugin
