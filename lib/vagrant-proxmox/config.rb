@@ -82,6 +82,16 @@ module VagrantPlugins
 			# @return [Symbol]
 			attr_accessor :qemu_os
 
+			# The number of cores per socket
+			#
+			# @return [Integer]
+			attr_accessor :qemu_cores
+
+			# The number of CPU sockets
+			#
+			# @return [Integer]
+			attr_accessor :qemu_sockets
+
 			# The qemu iso file to use for the virtual machine
 			#
 			# @return [String]
@@ -96,6 +106,24 @@ module VagrantPlugins
 			#
 			# @return [String]
 			attr_accessor :qemu_disk_size
+
+			# The qemu storage to use for the virtual machine, e.g. 'local', 'raid', 'cephstore'
+			# defaults to 'raid' for backwards compatability
+			#
+			# @return [String]
+			attr_accessor :qemu_storage
+
+			# The qemu network interface card model, e.g. 'e1000', 'virtio'
+			# defaults to 'e1000' for backwards compatability
+			#
+			# @return [String]
+			attr_accessor :qemu_nic_model
+
+			# The qemu network bridge, e.g. 'vmbr0'
+			# defaults to 'vmbr0' for backwards compatability
+			#
+			# @return [String]
+			attr_accessor :qemu_bridge
 
 			def initialize
 				@endpoint = UNSET_VALUE
@@ -114,9 +142,14 @@ module VagrantPlugins
 				@ssh_status_check_interval = 5
 				@imgcopy_timeout = 120
 				@qemu_os = UNSET_VALUE
+				@qemu_cores = 1
+				@qemu_sockets = 1
 				@qemu_iso = UNSET_VALUE
 				@qemu_iso_file = UNSET_VALUE
 				@qemu_disk_size = UNSET_VALUE
+				@qemu_storage = 'raid'
+				@qemu_nic_model = 'e1000'
+				@qemu_bridge = 'vmbr0'
 			end
 
 			# This is the hook that is called to finalize the object before it is put into use.
