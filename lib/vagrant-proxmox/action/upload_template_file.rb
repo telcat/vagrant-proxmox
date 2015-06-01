@@ -14,16 +14,16 @@ module VagrantPlugins
 					env[:result] = :ok
 					config = env[:machine].provider_config
 					if config.openvz_template_file
-						env[:result] = upload_file env, config.openvz_template_file
+						env[:result] = upload_file env, config.openvz_template_file, config.replace_openvz_template_file
 					end
 					next_action env
 				end
 
 				private
-				def upload_file env, filename
+				def upload_file env, filename, replace
 					if File.exist? filename
 						begin
-							connection(env).upload_file(filename, content_type: 'vztmpl', node: env[:proxmox_selected_node], storage: 'local')
+							connection(env).upload_file(filename, content_type: 'vztmpl', node: env[:proxmox_selected_node], storage: 'local', replace: replace)
 							:ok
 						rescue
 							:server_upload_error

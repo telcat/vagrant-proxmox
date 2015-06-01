@@ -11,27 +11,58 @@ module VagrantPlugins::Proxmox
 								 proxmox_connection: connection, proxmox_selected_node: node} }
 		let(:template_file) { 'template.tar.gz' }
 		let(:template_file_exists) { true }
+		let(:replace_template_file) { false }
 		let(:node) { 'node1' }
 
 		subject(:action) { described_class.new(-> (_) {}, environment) }
 
 		before do
 			env[:machine].provider_config.openvz_template_file = template_file
+			env[:machine].provider_config.replace_openvz_template_file = replace_template_file
 			allow(File).to receive(:exist?).with(template_file).and_return(template_file_exists)
 		end
 
 		context 'with a specified template file' do
 
 			it 'should upload the template file into the local storage of the selected node' do
-				expect(connection).to receive(:upload_file).with(template_file, content_type: 'vztmpl', node: node, storage: 'local')
+				expect(connection).to receive(:upload_file).with(template_file, content_type: 'vztmpl', node: node, storage: 'local', replace: replace_template_file)
 				action.call env
 			end
 		end
 
 		it 'should return :ok after a successful upload' do
-			allow(connection).to receive(:upload_file).with(template_file, content_type: 'vztmpl', node: node, storage: 'local')
+			allow(connection).to receive(:upload_file).with(template_file, content_type: 'vztmpl', node: node, storage: 'local', replace: replace_template_file)
 			action.call env
 			expect(env[:result]).to eq(:ok)
+		end
+
+		context 'with a specified template file and replace statement' do
+
+			let(:replace_template_file) { true }
+
+			context 'the template file exists on the server' do
+
+				before do
+					allow(connection).to receive(:is_file_in_storage?).with(filename: template_file, node: node, storage: 'local').and_return(1)
+				end
+
+				it 'should delete the template file on the server' do
+					expect(connection).to receive(:delete_file).with(filename: template_file, node: node, storage: 'local')
+					action.call env
+				end
+			end
+
+			context 'the template file does not exist on the server' do
+
+				before do
+					allow(connection).to receive(:is_file_in_storage?).with(filename: template_file, node: node, storage: 'local').and_return(nil)
+				end
+
+				it 'should not delete the template file on the server' do
+					expect(connection).not_to receive(:delete_file)
+					action.call env
+				end
+			end
 		end
 
 		context 'when a server error occurs' do

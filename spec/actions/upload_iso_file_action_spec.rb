@@ -25,13 +25,13 @@ module VagrantPlugins::Proxmox
 		context 'with a specified iso file' do
 
 			it 'should upload the iso file into the local storage of the selected node' do
-				expect(connection).to receive(:upload_file).with(iso_file, content_type: 'iso', node: node, storage: 'local', replace: false)
+				expect(connection).to receive(:upload_file).with(iso_file, content_type: 'iso', node: node, storage: 'local', replace: replace_iso_file)
 				action.call env
 			end
 		end
 
 		it 'should return :ok after a successful upload' do
-			allow(connection).to receive(:upload_file).with(iso_file, content_type: 'iso', node: node, storage: 'local', replace: false)
+			allow(connection).to receive(:upload_file).with(iso_file, content_type: 'iso', node: node, storage: 'local', replace: replace_iso_file)
 			action.call env
 			expect(env[:result]).to eq(:ok)
 		end
