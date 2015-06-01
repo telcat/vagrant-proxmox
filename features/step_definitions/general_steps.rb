@@ -128,3 +128,12 @@ end
 Then(/^The iso file "([^"]*)" is not uploaded$/) do |arg|
 	assert_not_requested :post, proxmox_api_url('/nodes/node1/storage/local/upload')
 end
+
+
+Then(/^The iso file "([^"]*)" is deleted from proxmox$/) do |arg|
+	pending
+end
+
+Then(/^The template file "([^"]*)" is deleted from proxmox$/) do |arg|
+	pending
+end

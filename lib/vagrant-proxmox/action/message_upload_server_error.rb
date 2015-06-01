@@ -9,7 +9,7 @@ module VagrantPlugins
 				end
 
  				def call env
-					env[:ui].info I18n.t('vagrant_proxmox.errors.upload_server_error')
+					env[:ui].info I18n.t('vagrant_proxmox.errors.server_upload_error')
 					next_action env
 				end
 

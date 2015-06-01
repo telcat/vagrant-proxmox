@@ -36,6 +36,11 @@ describe VagrantPlugins::Proxmox::Config do
 			it { is_expected.to be_nil }
 		end
 
+		describe '#replace_openvz_template_file' do
+			subject { super().replace_openvz_template_file }
+			it { is_expected.to eq(false) }
+		end
+
 		describe '#vm_id_range' do
 			subject { super().vm_id_range }
 			it { is_expected.to eq(900..999) }
@@ -91,6 +96,11 @@ describe VagrantPlugins::Proxmox::Config do
 			it { is_expected.to be_nil }
 		end
 
+		describe '#replace_qemu_iso_file' do
+			subject { super().replace_qemu_iso_file }
+			it { is_expected.to eq(false) }
+		end
+
 		describe '#qemu_disk_size' do
 			subject { super().qemu_disk_size }
 			it { is_expected.to be_nil }
@@ -103,8 +113,10 @@ describe VagrantPlugins::Proxmox::Config do
 		let(:proxmox_qemu_iso) { '' }
 		let(:proxmox_openvz_os_template) { "proxmox.openvz_os_template = 'local:vztmpl/template.tar.gz'" }
 		let(:proxmox_openvz_template_file) { '' }
+		let(:proxmox_replace_openvz_template_file) { '' }
 		let(:proxmox_vm_type) { 'proxmox.vm_type = :openvz' }
 		let(:proxmox_qemu_iso_file) { '' }
+		let(:proxmox_replace_qemu_iso_file) { '' }
 		let(:proxmox_qemu_disk_size) { '' }
 		let(:vagrantfile_content) { "
 Vagrant.configure('2') do |config|
@@ -115,8 +127,10 @@ Vagrant.configure('2') do |config|
     #{proxmox_vm_type}
 		#{proxmox_openvz_os_template}
 		#{proxmox_openvz_template_file}
+		#{proxmox_replace_openvz_template_file}
 		#{proxmox_qemu_iso}
 		#{proxmox_qemu_iso_file}
+		#{proxmox_replace_qemu_iso_file}
 		#{proxmox_qemu_disk_size}
 		proxmox.vm_id_range = 900..910
 		proxmox.vm_name_prefix = 'vagrant_test_'
@@ -180,6 +194,17 @@ end
 					end
 					subject { super().openvz_template_file }
 					it { is_expected.to eq('template.tar.gz') }
+				end
+			end
+
+			context 'with a new template file to be overwritten' do
+				let(:proxmox_replace_openvz_template_file) { 'proxmox.replace_openvz_template_file = true' }
+
+				describe '#openvz_template_file' do
+					before do
+					end
+					subject { super().replace_openvz_template_file }
+					it { is_expected.to eq(true) }
 				end
 			end
 
@@ -338,7 +363,7 @@ end
 
 				context 'when the disk size contains a unit' do
 
-					let (:proxmox_qemu_disk_size) {"proxmox.qemu_disk_size = '15G' "}
+					let (:proxmox_qemu_disk_size) { "proxmox.qemu_disk_size = '15G' " }
 
 					it 'should be converted into gigabytes' do
 						expect(config.qemu_disk_size).to eq('15')

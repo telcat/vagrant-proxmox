@@ -37,6 +37,11 @@ module VagrantPlugins
 			# @return [String]
 			attr_accessor :openvz_template_file
 
+			# Should the openvz os template be replaced (deleted before upload)?
+			#
+			# @return [Boolean]
+			attr_accessor :replace_openvz_template_file
+
 			# The id range to use for the virtual machines
 			#
 			# @return [Range]
@@ -102,6 +107,11 @@ module VagrantPlugins
 			# @return [String]
 			attr_accessor :qemu_iso_file
 
+			# Should the qemu iso file replaced (deleted before upload)?
+			#
+			# @return [Boolean]
+			attr_accessor :replace_qemu_iso_file
+
 			# The qemu disk size to use for the virtual machine, e.g. '30G'
 			#
 			# @return [String]
@@ -133,6 +143,7 @@ module VagrantPlugins
 				@vm_type = UNSET_VALUE
 				@openvz_os_template = UNSET_VALUE
 				@openvz_template_file = UNSET_VALUE
+				@replace_openvz_template_file = false
 				@vm_id_range = 900..999
 				@vm_name_prefix = 'vagrant_'
 				@vm_memory = 512
@@ -146,6 +157,7 @@ module VagrantPlugins
 				@qemu_sockets = 1
 				@qemu_iso = UNSET_VALUE
 				@qemu_iso_file = UNSET_VALUE
+				@replace_qemu_iso_file = false
 				@qemu_disk_size = UNSET_VALUE
 				@qemu_storage = 'raid'
 				@qemu_nic_model = 'e1000'

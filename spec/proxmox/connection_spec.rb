@@ -611,6 +611,7 @@ module VagrantPlugins::Proxmox
 		describe '#upload_file' do
 
 			let (:file) { '/my/dir/template.tar.gz' }
+			let (:replace_openvz_template_file) { false }
 			let (:storage_file_list) { [] }
 
 			before do
@@ -640,10 +641,59 @@ module VagrantPlugins::Proxmox
 
 				let (:storage_file_list) { [{volid: 'local:vztmpl/template.tar.gz'}] }
 
-				it 'should not upload the file' do
-					expect(connection).not_to receive(:post).with('/nodes/localhost/storage/local/upload', anything())
-					connection.upload_file file, content_type: 'vztmpl', node: 'localhost', storage: 'local'
+				context 'when the file is not set to be replaced' do
+
+					it 'should not upload the file' do
+						expect(connection).not_to receive(:post).with('/nodes/localhost/storage/local/upload', anything())
+						connection.upload_file file, content_type: 'vztmpl', node: 'localhost', storage: 'local'
+					end
 				end
+
+				context 'when the file is set to be replaced' do
+
+					let (:replace_openvz_template_file) { true }
+
+					it 'should delete the file before upload' do
+						expect(connection).to receive(:delete_file)
+						connection.upload_file file, content_type: 'vztmpl', node: 'localhost', storage: 'local', replace: true
+					end
+				end
+			end
+		end
+
+		describe '#delete_file' do
+
+			let (:file) { '/my/dir/template.tar.gz' }
+			let (:replace_openvz_template_file) { true }
+			let (:storage_file_list) { [] }
+
+			before do
+				allow(connection).to receive_messages :post => {data: 'task_id'}.to_json
+				allow(connection).to receive_messages :wait_for_completion => 'OK'
+				allow(connection).to receive_messages :get_vm_info => vm_info
+			end
+
+			it 'waits for completion of the server task' do
+				expect(connection).to receive(:wait_for_completion)
+				connection.stop_vm '100'
+			end
+
+			it 'should return the task exit status' do
+				expect(connection.stop_vm('100')).to eq('OK')
+			end
+
+			context 'the file exists in the storage' do
+
+				let (:storage_file_list) { [{volid: 'local:vztmpl/template.tar.gz'}] }
+
+				it 'should delete the file from the storage' do
+					expect(connection).to receive(:delete).with("/nodes/localhost/storage/local/content/template.tar.gz")
+					connection.delete_file filename: file, node: 'localhost', storage: 'local'
+				end
+			end
+
+			context 'the file does not exist in the storage' do
+
 			end
 		end
 

@@ -126,12 +126,20 @@ module VagrantPlugins
 				free_vm_ids.empty? ? raise(VagrantPlugins::Proxmox::Errors::NoVmIdAvailable) : free_vm_ids.first
 			end
 
-			def upload_file file, content_type: required('content_type'), node: required('node'), storage: required('storage')
+			def upload_file file, content_type: required('content_type'), node: required('node'), storage: required('storage'), replace: false
+				if (is_file_in_storage? filename: file, node: node, storage: storage) && (replace == true)
+					delete_file(filename: file, node: node, storage: storage)
+				end
 				unless is_file_in_storage? filename: file, node: node, storage: storage
 					res = post "/nodes/#{node}/storage/#{storage}/upload", content: content_type,
 										 filename: File.new(file, 'rb'), node: node, storage: storage
 					wait_for_completion task_response: res, timeout_message: 'vagrant_proxmox.errors.upload_timeout'
 				end
+			end
+
+			def delete_file filename: required('filename'), node: required('node'), storage: required('storage')
+				response = delete "/nodes/#{node}/storage/#{storage}/content/#{File.basename filename}"
+				wait_for_completion task_response: response, timeout_message: 'vagrant_proxmox.errors.delete_file_timeout'
 			end
 
 			def list_storage_files node: required('node'), storage: required('storage')
@@ -146,9 +154,9 @@ module VagrantPlugins
 			def get_vm_info vm_id
 				response = get '/cluster/resources?type=vm'
 				response[:data]
-				.select { |m| m[:id] =~ /^[a-z]*\/#{vm_id}$/ }
-				.map { |m| {id: vm_id, type: /^(.*)\/(.*)$/.match(m[:id])[1], node: m[:node]} }
-				.first
+					.select { |m| m[:id] =~ /^[a-z]*\/#{vm_id}$/ }
+					.map { |m| {id: vm_id, type: /^(.*)\/(.*)$/.match(m[:id])[1], node: m[:node]} }
+					.first
 			end
 
 			private
@@ -175,7 +183,7 @@ module VagrantPlugins
 			end
 
 			private
-			def delete path
+			def delete path, params = {}
 				begin
 					response = RestClient.delete "#{api_url}#{path}", headers
 					JSON.parse response.to_s, symbolize_names: true
