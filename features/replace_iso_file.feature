@@ -31,9 +31,9 @@ Feature: Use new iso file
 
   Scenario: An iso file is specified in the Vagrantfile and already exists on the proxmox server
     Given An iso file "./tmp/justanisofile.iso" exists locally
-    And the iso file "justanisofile.iso" exists locally" already exists in the proxmox storage
+    And the iso file "justanisofile.iso" already exists in the proxmox storage
     When I run "vagrant up --provider=proxmox --no-provision"
-    Then The iso file "local:iso/justanisofile.iso" is deleted from proxmox
+    Then The iso file "justanisofile.iso" is deleted from proxmox
     And The iso file "./tmp/justanisofile.iso" is uploaded into the local storage of the vm node
     And the new virtual machine using the iso "local:iso/justanisofile.iso" is created
 

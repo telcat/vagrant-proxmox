@@ -30,7 +30,7 @@ Feature: Use new iso file
 
   Scenario: An iso file is specified in the Vagrantfile and already exists on the proxmox server
     Given An iso file "./tmp/justanisofile.iso" exists locally
-    And the iso file "justanisofile.iso" exists locally" already exists in the proxmox storage
+    And the iso file "justanisofile.iso" already exists in the proxmox storage
     When I run "vagrant up --provider=proxmox --no-provision"
     Then The iso file "./tmp/justanisofile.iso" is not uploaded
     And the new virtual machine using the iso "local:iso/justanisofile.iso" is created

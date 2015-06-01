@@ -36,32 +36,13 @@ module VagrantPlugins::Proxmox
 			expect(env[:result]).to eq(:ok)
 		end
 
-		context 'with a specified template file and replace statement' do
+		context 'the template file should be replaced' do
 
 			let(:replace_template_file) { true }
 
-			context 'the template file exists on the server' do
-
-				before do
-					allow(connection).to receive(:is_file_in_storage?).with(filename: template_file, node: node, storage: 'local').and_return(1)
-				end
-
-				it 'should delete the template file on the server' do
-					expect(connection).to receive(:delete_file).with(filename: template_file, node: node, storage: 'local')
-					action.call env
-				end
-			end
-
-			context 'the template file does not exist on the server' do
-
-				before do
-					allow(connection).to receive(:is_file_in_storage?).with(filename: template_file, node: node, storage: 'local').and_return(nil)
-				end
-
-				it 'should not delete the template file on the server' do
-					expect(connection).not_to receive(:delete_file)
-					action.call env
-				end
+			it 'should delete the template file on the server' do
+				expect(connection).to receive(:delete_file).with(filename: template_file, content_type: 'vztmpl', node: node, storage: 'local')
+				action.call env
 			end
 		end
 

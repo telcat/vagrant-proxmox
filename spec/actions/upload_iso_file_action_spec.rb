@@ -36,32 +36,13 @@ module VagrantPlugins::Proxmox
 			expect(env[:result]).to eq(:ok)
 		end
 
-		context 'with a specified iso file and replace statement' do
+		context 'The iso file should be replaced' do
 
 			let(:replace_iso_file) { true }
 
-			context 'the iso file exists on the server' do
-
-				before do
-					allow(connection).to receive(:is_file_in_storage?).with(filename: iso_file, node: node, storage: 'local').and_return(1)
-				end
-
-				it 'should delete the iso file on the server' do
-					expect(connection).to receive(:delete_file).with(filename: iso_file, node: node, storage: 'local')
-					action.call env
-				end
-			end
-
-			context 'the iso file does not exist on the server' do
-
-				before do
-					allow(connection).to receive(:is_file_in_storage?).with(filename: iso_file, node: node, storage: 'local').and_return(nil)
-				end
-
-				it 'should not delete the iso file on the server' do
-					expect(connection).not_to receive(:delete_file)
-					action.call env
-				end
+			it 'should delete the iso file on the server' do
+				expect(connection).to receive(:delete_file).with(filename: iso_file, content_type: 'iso', node: node, storage: 'local')
+				action.call env
 			end
 		end
 

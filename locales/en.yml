@@ -42,8 +42,6 @@ en:
       timeout: 'Timeout error'
       upload_timeout: |-
         Uploading a file to the proxmox server timed out.
-      delete_file_timeout: |-
-        Deleting a file from the proxmox server timed out.
       vm_create_error: |-
         Unable to create the virtual machine!
 

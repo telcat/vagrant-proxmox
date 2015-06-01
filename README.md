@@ -46,22 +46,22 @@ Then for an openvz container create a Vagrantfile that looks like the following 
 ```
 Vagrant.configure('2') do |config|
 
-	config.vm.provider :proxmox do |proxmox|
-		proxmox.endpoint = 'https://your.proxmox.server:8006/api2/json'
-		proxmox.user_name = 'proxmox_username@pam'
-		proxmox.password = 'proxmox_password'
-		proxmox.vm_id_range = 900..910
-		proxmox.vm_name_prefix = 'vagrant_'
-		proxmox.openvz_os_template = 'local:vztmpl/vagrant-proxmox-ubuntu-12.tar.gz'
-		proxmox.vm_type = :openvz
-		proxmox.vm_memory = 256
-	end
-
-	config.vm.define :box, primary: true do |box|
- 		box.vm.box = 'dummy'
- 		box.vm.network :public_network, ip: '192.168.0.1'
- 	end
-
+    config.vm.provider :proxmox do |proxmox|
+        proxmox.endpoint = 'https://your.proxmox.server:8006/api2/json'
+        proxmox.user_name = 'proxmox_username@pam'
+        proxmox.password = 'proxmox_password'
+        proxmox.vm_id_range = 900..910
+        proxmox.vm_name_prefix = 'vagrant_'
+        proxmox.openvz_os_template = 'local:vztmpl/vagrant-proxmox-ubuntu-12.tar.gz'
+        proxmox.vm_type = :openvz
+        proxmox.vm_memory = 256
+    end
+    
+    config.vm.define :box, primary: true do |box|
+        box.vm.box = 'dummy'
+        box.vm.network :public_network, ip: '192.168.0.1'
+    end
+    
 end
 ```
 
@@ -70,29 +70,29 @@ If you want KVM the Vagrantfile could look as follows:
 ```
 Vagrant.configure('2') do |config|
 
-	config.vm.provider :proxmox do |proxmox|
-		proxmox.endpoint = 'https://proxmox.example.com/api2/json'
-		proxmox.user_name = 'vagrant'
-		proxmox.password = 'password'
-		proxmox.vm_id_range = 900..910
-		proxmox.vm_type = :qemu
-		proxmox.vm_name_prefix = 'vagrant_'
-		proxmox.qemu_os = :l26
-		proxmox.qemu_disk_size = '30G'
-		proxmox.qemu_storage = 'local'
-		proxmox.qemu_iso_file = '/home/user/system.iso'
-		proxmox.vm_name_prefix = 'vagrant_test_'
-		proxmox.qemu_cores = 1
-		proxmox.qemu_sockets = 1
-		proxmox.qemu_nic_model = 'virtio'
-		proxmox.qemu_bridge = 'vmbr0'
-		proxmox.vm_memory = 512
-	end
+    config.vm.provider :proxmox do |proxmox|
+        proxmox.endpoint = 'https://proxmox.example.com/api2/json'
+        proxmox.user_name = 'vagrant'
+        proxmox.password = 'password'
+        proxmox.vm_id_range = 900..910
+        proxmox.vm_type = :qemu
+        proxmox.vm_name_prefix = 'vagrant_'
+        proxmox.qemu_os = :l26
+        proxmox.qemu_disk_size = '30G'
+        proxmox.qemu_storage = 'local'
+        proxmox.qemu_iso_file = '/home/user/system.iso'
+        proxmox.vm_name_prefix = 'vagrant_test_'
+        proxmox.qemu_cores = 1
+        proxmox.qemu_sockets = 1
+        proxmox.qemu_nic_model = 'virtio'
+        proxmox.qemu_bridge = 'vmbr0'
+        proxmox.vm_memory = 512
+    end
 
-	config.vm.define :box, primary: true do |box|
- 		box.vm.box = 'dummy'
- 		box.vm.network :public_network, ip: '192.168.0.1', macaddress: 'ff:aa:cc:dd:bb:ee'
- 	end
+    config.vm.define :box, primary: true do |box|
+        box.vm.box = 'dummy'
+        box.vm.network :public_network, ip: '192.168.0.1', macaddress: 'ff:aa:cc:dd:bb:ee'
+    end
 
 end
 ```
@@ -114,6 +114,7 @@ Finally run `vagrant up --provider=proxmox` to create and start the new OpenVZ c
 * `vm_type` The virtual machine type, e.g. :openvz or :qemu
 * `openvz_os_template` The name of the template from which the OpenVZ container should be created
 * `openvz_template_file` The openvz os template file to upload and use for the virtual machine (can be specified instead of `openvz_os_template`)
+* `replace_openvz_template_file` Set to true if the openvz os template file should be replaced on the server (default: false)
 * `vm_memory` The container's main memory size
 * `task_timeout` How long to wait for completion of a Proxmox API command (in seconds)
 * `task_status_check_interval` Interval in seconds between checking for completion of a Proxmox API command
@@ -123,6 +124,7 @@ Finally run `vagrant up --provider=proxmox` to create and start the new OpenVZ c
 * `qemu_os` The qemu virtual machine operating system, e.g. :l26
 * `qemu_iso` The qemu iso file to use for the virtual machine
 * `qemu_iso_file` The qemu iso file to upload and use for the virtual machine (can be specified instead of `qemu_iso`)
+* `replace_qemu_iso_file` Set to true if the iso file should be replaced on the server (default: false)
 * `qemu_disk_size` The qemu disk size to use for the virtual machine, e.g. '30G'
 * `qemu_storage` The storage pool to use, i.e. the value of the `storage` key of the hash returned by `pvesh get /nodes/{node}/storage`, e.g. 'raid', 'local', 'cephstore'
 * `qemu_cores` The number of cores per socket available to the VM

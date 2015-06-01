@@ -31,7 +31,7 @@ Feature: Use new template file
     Given A templatefile "./tmp/mytemplate.tar.gz" exists locally
     And the template file "mytemplate.tar.gz" already exists in the proxmox storage
     When I run "vagrant up --provider=proxmox --no-provision"
-    Then The template file "local:vztmpl/mytemplate.tar.gz" is deleted from proxmox
+    Then The template file "mytemplate.tar.gz" is deleted from proxmox
     And the new virtual machine using the template "local:vztmpl/mytemplate.tar.gz" is created
 
   Scenario: A template is specified in the Vagrantfile but does not exist locally

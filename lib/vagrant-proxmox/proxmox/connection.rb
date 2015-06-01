@@ -127,9 +127,7 @@ module VagrantPlugins
 			end
 
 			def upload_file file, content_type: required('content_type'), node: required('node'), storage: required('storage'), replace: false
-				if (is_file_in_storage? filename: file, node: node, storage: storage) && (replace == true)
-					delete_file(filename: file, node: node, storage: storage)
-				end
+				delete_file(filename: file, content_type: content_type, node: node, storage: storage) if replace
 				unless is_file_in_storage? filename: file, node: node, storage: storage
 					res = post "/nodes/#{node}/storage/#{storage}/upload", content: content_type,
 										 filename: File.new(file, 'rb'), node: node, storage: storage
@@ -137,9 +135,8 @@ module VagrantPlugins
 				end
 			end
 
-			def delete_file filename: required('filename'), node: required('node'), storage: required('storage')
-				response = delete "/nodes/#{node}/storage/#{storage}/content/#{File.basename filename}"
-				wait_for_completion task_response: response, timeout_message: 'vagrant_proxmox.errors.delete_file_timeout'
+			def delete_file filename: required('filename'), content_type: required('content_type'), node: required('node'), storage: required('storage')
+				delete "/nodes/#{node}/storage/#{storage}/content/#{content_type}/#{File.basename filename}"
 			end
 
 			def list_storage_files node: required('node'), storage: required('storage')

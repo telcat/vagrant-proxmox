@@ -654,7 +654,7 @@ module VagrantPlugins::Proxmox
 					let (:replace_openvz_template_file) { true }
 
 					it 'should delete the file before upload' do
-						expect(connection).to receive(:delete_file)
+						expect(connection).to receive(:delete_file).with(filename: file, content_type: 'vztmpl', node: 'localhost', storage: 'local')
 						connection.upload_file file, content_type: 'vztmpl', node: 'localhost', storage: 'local', replace: true
 					end
 				end
@@ -687,14 +687,11 @@ module VagrantPlugins::Proxmox
 				let (:storage_file_list) { [{volid: 'local:vztmpl/template.tar.gz'}] }
 
 				it 'should delete the file from the storage' do
-					expect(connection).to receive(:delete).with("/nodes/localhost/storage/local/content/template.tar.gz")
-					connection.delete_file filename: file, node: 'localhost', storage: 'local'
+					expect(connection).to receive(:delete).with("/nodes/localhost/storage/local/content/iso/template.tar.gz")
+					connection.delete_file filename: file, content_type: 'iso', node: 'localhost', storage: 'local'
 				end
 			end
 
-			context 'the file does not exist in the storage' do
-
-			end
 		end
 
 		describe '#list_storage_files' do

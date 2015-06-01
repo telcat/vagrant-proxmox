@@ -21,6 +21,20 @@ def stub_machine_initialization
 		to_return body: {data: [{node: 'node1', id: 'openvz/900'}]}.to_json
 	stub_request(:post, proxmox_api_url('/nodes/node1/storage/local/upload')).
 		to_return body: {data: 'UPID:node1:A:B:C:D:task_type:user@host:'}.to_json
+	stub_request(:delete, proxmox_api_url('/nodes/node1/storage/local/content/iso/justanisofile.iso')).
+		to_return do |request|
+		remove_request_stub @storage_content_request_stub
+		@storage_content_request_stub = stub_request(:get, proxmox_api_url('/nodes/node1/storage/local/content')).
+			to_return(body: {data: []}.to_json)
+		{body: {data: nil}.to_json}
+	end
+	stub_request(:delete, proxmox_api_url('/nodes/node1/storage/local/content/vztmpl/mytemplate.tar.gz')).
+		to_return do |request|
+		remove_request_stub @storage_content_request_stub
+		@storage_content_request_stub = stub_request(:get, proxmox_api_url('/nodes/node1/storage/local/content')).
+			to_return(body: {data: []}.to_json)
+		{body: {data: nil}.to_json}
+	end
 end
 
 def stub_default_calls
@@ -47,6 +61,20 @@ def stub_default_calls
 		to_return body: {data: []}.to_json
 	stub_request(:post, proxmox_api_url('/nodes/node1/storage/local/upload')).
 		to_return body: {data: 'UPID:node1:A:B:C:D:task_type:user@host:'}.to_json
+	stub_request(:delete, proxmox_api_url('/nodes/node1/storage/local/content/iso/justanisofile.iso')).
+		to_return do |request|
+		remove_request_stub @storage_content_request_stub
+		@storage_content_request_stub = stub_request(:get, proxmox_api_url('/nodes/node1/storage/local/content')).
+			to_return(body: {data: []}.to_json)
+		{body: {data: nil}.to_json}
+	end
+	stub_request(:delete, proxmox_api_url('/nodes/node1/storage/local/content/vztmpl/mytemplate.tar.gz')).
+		to_return do |request|
+		remove_request_stub @storage_content_request_stub
+		@storage_content_request_stub = stub_request(:get, proxmox_api_url('/nodes/node1/storage/local/content')).
+			to_return(body: {data: []}.to_json)
+		{body: {data: nil}.to_json}
+	end
 end
 
 def up_machine
@@ -80,7 +108,7 @@ def add_dummy_box
 end
 
 def remove_dummy_box
-  stub_local_vagrant_call 'ps -o comm= 1'
+	stub_local_vagrant_call 'ps -o comm= 1'
 	@environment = Vagrant::Environment.new vagrantfile_name: 'dummy_box/Cucumber_Vagrantfile'
 	execute_vagrant_command :box, 'remove', 'b681e2bc-617b-4b35-94fa-edc92e1071b8'
 end
