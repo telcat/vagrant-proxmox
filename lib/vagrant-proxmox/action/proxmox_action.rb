@@ -11,7 +11,12 @@ module VagrantPlugins
 
 				protected
 				def get_machine_ip_address env
-					env[:machine].config.vm.networks.select { |type, _| type == :public_network }.first[1][:ip] rescue nil
+					config = env[:machine].provider_config
+					if config.vm_type == :qemu
+						env[:machine].config.vm.networks.select { |type, _| type == :forwarded_port }.first[1][:host_ip] rescue nil
+					else
+						env[:machine].config.vm.networks.select { |type, _| type == :public_network }.first[1][:ip] rescue nil
+					end
 				end
 
 				protected
