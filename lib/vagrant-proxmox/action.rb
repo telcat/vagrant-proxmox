@@ -63,7 +63,6 @@ module VagrantPlugins
 									b1.use CloneVm
 									b1.use Call, IsCreated do |env2, b2|
 										if env2[:result]
-											b2.use CloneVm
 											b2.use AdjustForwardedPortParams
 											b2.use ConfigClone
 											b2.use StartVm
