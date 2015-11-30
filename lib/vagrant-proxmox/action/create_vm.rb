@@ -21,6 +21,7 @@ module VagrantPlugins
 					begin
 						vm_id = connection(env).get_free_vm_id
 						params = create_params_openvz(config, env, vm_id) if config.vm_type == :openvz
+						params = create_params_lxc(config, env, vm_id) if config.vm_type == :lxc
 						params = create_params_qemu(config, env, vm_id) if config.vm_type == :qemu
 						exit_status = connection(env).create_vm node: node, vm_type: config.vm_type, params: params
 						exit_status == 'OK' ? exit_status : raise(VagrantPlugins::Proxmox::Errors::ProxmoxTaskFailed, proxmox_exit_status: exit_status)
@@ -60,6 +61,19 @@ module VagrantPlugins
 					 description: "#{config.vm_name_prefix}#{env[:machine].name}"}
 					.tap do |params|
 						params[:ip_address] = get_machine_ip_address(env) if get_machine_ip_address(env)
+					end
+				end
+                
+                private
+				def create_params_lxc(config, env, vm_id)
+					{vmid: vm_id,
+					 ostemplate: config.openvz_os_template,
+					 hostname: env[:machine].config.vm.hostname || env[:machine].name.to_s,
+					 password: 'vagrant',
+					 memory: config.vm_memory,
+					 description: "#{config.vm_name_prefix}#{env[:machine].name}"}
+					.tap do |params|
+						params[:net0] = "name=#{get_machine_interface_name(env)},ip=#{get_machine_ip_address(env)}/24,gw=#{get_machine_gw_ip(env)},bridge=#{get_machine_bridge_name(env)}" if get_machine_ip_address(env)
 					end
 				end
 			end

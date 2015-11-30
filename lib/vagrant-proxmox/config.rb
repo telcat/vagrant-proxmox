@@ -22,7 +22,7 @@ module VagrantPlugins
 			# @return [String]
 			attr_accessor :password
 
-			# The virtual machine type, e.g. :openvz or :qemu
+			# The virtual machine type, e.g. :openvz or :qemu or :lxc
 			#
 			# @return [Symbol]
 			attr_accessor :vm_type
