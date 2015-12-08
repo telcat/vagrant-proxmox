@@ -158,8 +158,8 @@ module VagrantPlugins
 				@vm_id_range = 900..999
 				@vm_name_prefix = 'vagrant_'
 				@vm_memory = 512
-				@qemu_disk_size = '20G'
-				@qemu_storage = 'local'
+				@vm_disk_size = '20G'
+				@vm_storage = 'local'
 				@task_timeout = 60
 				@task_status_check_interval = 2
 				@ssh_timeout = 60
@@ -193,6 +193,8 @@ module VagrantPlugins
 				@qemu_iso = nil if @qemu_iso == UNSET_VALUE
 				@qemu_disk_size = nil if @qemu_disk_size == UNSET_VALUE
 				@qemu_disk_size = convert_disk_size_to_gigabyte @qemu_disk_size if @qemu_disk_size
+                @vm_disk_size = nil if @vm_disk_size == UNSET_VALUE
+                @vm_disk_size = convert_disk_size_to_gigabyte @vm_disk_size if @vm_disk_size
 			end
 
 			def validate machine
