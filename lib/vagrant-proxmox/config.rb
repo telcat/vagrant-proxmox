@@ -57,6 +57,17 @@ module VagrantPlugins
 			# @return [Integer]
 			attr_accessor :vm_memory
 
+			# The vm disk size to use for the virtual machine, e.g. '30G'
+			#
+			# @return [String]
+			attr_accessor :vm_disk_size
+
+			# The vm storage to use for the virtual machine, e.g. 'local', 'raid', 'cephstore'
+			# defaults to 'raid' for backwards compatability
+			#
+			# @return [String]
+			attr_accessor :vm_storage
+
 			# The maximum timeout for a proxmox server task (in seconds)
 			#
 			# @return [Integer]
@@ -147,6 +158,8 @@ module VagrantPlugins
 				@vm_id_range = 900..999
 				@vm_name_prefix = 'vagrant_'
 				@vm_memory = 512
+				@qemu_disk_size = '20G'
+				@qemu_storage = 'local'
 				@task_timeout = 60
 				@task_status_check_interval = 2
 				@ssh_timeout = 60
