@@ -27,6 +27,16 @@ module VagrantPlugins
 			# @return [Symbol]
 			attr_accessor :vm_type
 
+			# True if the operation should be a clone
+			#
+			# @return [Boolean]
+			attr_accessor :clone
+
+			# Proxmox ID of VM to clone
+			#
+			# @return [Integer]
+			attr_accessor :src_vm_id
+
 			# The openvz os template to use for the virtual machine
 			#
 			# @return [String]
@@ -141,6 +151,8 @@ module VagrantPlugins
 				@user_name = UNSET_VALUE
 				@password = UNSET_VALUE
 				@vm_type = UNSET_VALUE
+				@clone = UNSET_VALUE
+				@src_vm_id = UNSET_VALUE
 				@openvz_os_template = UNSET_VALUE
 				@openvz_template_file = UNSET_VALUE
 				@replace_openvz_template_file = false
@@ -171,6 +183,8 @@ module VagrantPlugins
 				@user_name = nil if @user_name == UNSET_VALUE
 				@password = nil if @password == UNSET_VALUE
 				@vm_type = nil if @vm_type == UNSET_VALUE
+				@clone = false if @clone == UNSET_VALUE
+				@src_vm_id = nil if @src_vm_id == UNSET_VALUE
 				@openvz_template_file = nil if @openvz_template_file == UNSET_VALUE
 				@openvz_os_template = "local:vztmpl/#{File.basename @openvz_template_file}" if @openvz_template_file
 				@openvz_os_template = nil if @openvz_os_template == UNSET_VALUE
@@ -192,9 +206,12 @@ module VagrantPlugins
 					errors << I18n.t('vagrant_proxmox.errors.no_openvz_os_template_or_openvz_template_file_specified_for_type_openvz') unless @openvz_os_template || @openvz_template_file
 				end
 				if @vm_type == :qemu
-					errors << I18n.t('vagrant_proxmox.errors.no_qemu_os_specified_for_vm_type_qemu') unless @qemu_os
-					errors << I18n.t('vagrant_proxmox.errors.no_qemu_iso_or_qemu_iso_file_specified_for_vm_type_qemu') unless @qemu_iso || @qemu_iso_file
-					errors << I18n.t('vagrant_proxmox.errors.no_qemu_disk_size_specified_for_vm_type_qemu') unless @qemu_disk_size
+					errors << I18n.t('vagrant_proxmox.errors.no_qemu_os_specified_for_vm_type_qemu') unless @qemu_os || @clone
+					errors << I18n.t('vagrant_proxmox.errors.no_qemu_iso_or_qemu_iso_file_specified_for_vm_type_qemu') unless @qemu_iso || @qemu_iso_file || @clone
+					errors << I18n.t('vagrant_proxmox.errors.no_qemu_disk_size_specified_for_vm_type_qemu') unless @qemu_disk_size || @clone
+				end
+				if @vm_type == :qemu and @clone == true
+					errors << I18n.t('vagrant_proxmox.errors.no_clone_id_specified') unless @src_vm_id
 				end
 				{'Proxmox Provider' => errors}
 			end

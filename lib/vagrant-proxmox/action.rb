@@ -46,7 +46,22 @@ module VagrantPlugins
 										b2.use MessageUploadServerError
 									end
 								end
-							elsif env1[:machine].provider_config.vm_type == :qemu
+							elsif env1[:machine].provider_config.vm_type == :qemu and env1[:machine].provider_config.clone == false
+								# Install by creating VM and initialising from ISO image
+								b1.use Call, UploadIsoFile do |env2, b2|
+									if env2[:result] == :ok
+										b2.use CreateVm
+										b2.use StartVm
+										b2.use SyncFolders
+									elsif env2[:result] == :file_not_found
+										b2.use MessageFileNotFound
+									elsif env2[:result] == :server_upload_error
+										b2.use MessageUploadServerError
+									end
+								end
+							elsif env1[:machine].provider_config.vm_type == :qemu and env1[:machine].provider_config.clone == true
+								# Install by cloning an existing VM
+								# relies upon UploadIsoFile doing nothing if no file specified
 								b1.use Call, UploadIsoFile do |env2, b2|
 									if env2[:result] == :ok
 										b2.use CreateVm

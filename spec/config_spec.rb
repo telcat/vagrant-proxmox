@@ -26,6 +26,16 @@ describe VagrantPlugins::Proxmox::Config do
 			it { is_expected.to be_nil }
 		end
 
+		describe '#clone' do
+			subject { super().vm_type }
+			it { is_expected.to eq(false) }
+		end
+
+		describe '#srv_vm_id' do
+			subject { super().vm_type }
+			it { is_expected.to be_nil }
+		end
+
 		describe '#openvz_os_template' do
 			subject { super().openvz_os_template }
 			it { is_expected.to be_nil }
@@ -327,6 +337,24 @@ end
 						end
 					end
 
+				end
+
+				context 'with vm_type = :qemu' do
+
+					before do
+						subject.vm_type = :qemu
+						subject.clone = true
+						subject.src_vm_id = 100
+					end
+
+					describe 'because of a missing src_vm_id' do
+						before do
+							subject.src_vm_id = nil
+						end
+						specify 'it should report an error' do
+							expect(subject.validate(machine)).to eq({'Proxmox Provider' => ['No src_vm_id specified for clone operation']})
+						end
+					end
 				end
 			end
 		end

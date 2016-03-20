@@ -100,6 +100,23 @@ module VagrantPlugins
 				wait_for_completion task_response: response, timeout_message: 'vagrant_proxmox.errors.create_vm_timeout'
 			end
 
+			def clone_vm node: required('node'), vm_type: required('node'), params: required('params'), src_vm_id: required('src_vm_id')				
+				response = post "/nodes/#{node}/#{vm_type}/#{src_vm_id}/clone", params 												
+
+				wait_for_completion task_response: response, timeout_message: 'vagrant_proxmox.errors.create_vm_timeout'
+			end
+
+			def config_vm node: required('node'), vm_type: required('node'), params: required('params'), vm_id: required('vm_id')
+				response = post "/nodes/#{node}/#{vm_type}/#{vm_id}/config", params 												
+
+				wait_for_completion task_response: response, timeout_message: 'vagrant_proxmox.errors.create_vm_timeout'
+			end
+
+			def get_config node: required('node'), vm_type: required('node'), vm_id: required('vm_id')
+				response = get "/nodes/#{node}/#{vm_type}/#{vm_id}/config"
+				response[:data][:digest]				
+			end
+
 			def start_vm vm_id
 				vm_info = get_vm_info vm_id
 				response = post "/nodes/#{vm_info[:node]}/#{vm_info[:type]}/#{vm_id}/status/start", nil
@@ -202,11 +219,18 @@ module VagrantPlugins
 					JSON.parse response.to_s, symbolize_names: true
 				rescue RestClient::Unauthorized
 					raise ApiError::UnauthorizedError
-				rescue RestClient::NotImplemented
+				rescue RestClient::NotImplemented => e
+					puts e.message
+					puts e.backtrace.inspect
 					raise ApiError::NotImplemented
-				rescue RestClient::InternalServerError
+				rescue RestClient::InternalServerError => e
+					puts e.message
+					puts e.backtrace.inspect
 					raise ApiError::ServerError
 				rescue => x
+					puts x.message
+					puts x.backtrace.inspect
+
 					raise ApiError::ConnectionError, x.message
 				end
 			end

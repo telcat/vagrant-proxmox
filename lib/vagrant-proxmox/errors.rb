@@ -26,6 +26,14 @@ module VagrantPlugins
 				error_key :no_vm_id_available
 			end
 
+			class NoCloneIdSpecified < VagrantProxmoxError
+				error_key :no_clone_id_specified
+			end
+
+			class NoDigestAvailable < VagrantProxmoxError
+				error_key :no_digest_available
+			end
+
 			class VMCreateError < VagrantProxmoxError
 				error_key :vm_create_error
 			end
