@@ -4,6 +4,10 @@ This is a [Vagrant](http://www.vagrantup.com) plugin that adds a
 [Proxmox](http://proxmox.com/) provider to Vagrant, allowing Vagrant to manage
 and provision Proxmox virtual machines.
 
+This plugin has been extended in order to allow Vagrant to clone a template VM.
+
+To use in clone mode, set proxmox.clone = true and proxmox.src_vm_id = the ID of the source VM to clone. Network IP and MAC address should be specified as these will be overridden.
+
 ## Features
 
 * Create/Destroy OpenVZ containers from specified templates

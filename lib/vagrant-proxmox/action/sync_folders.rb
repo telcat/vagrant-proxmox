@@ -20,6 +20,11 @@ module VagrantPlugins
 						guestpath = data[:guestpath]
 						next if data[:disabled]
 
+						# on windows rsync.exe requires cygdrive-style paths
+						if Vagrant::Util::Platform.windows?
+						  hostpath = hostpath.gsub(/^(\w):/) { "/cygdrive/#{$1}" }
+						end
+
 						# Make sure there is a trailing slash on the host path to
 						# avoid creating an additional directory with rsync
 						hostpath = "#{hostpath}/" if hostpath !~ /\/$/

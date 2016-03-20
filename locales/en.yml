@@ -69,6 +69,7 @@ en:
       server_upload_error: "Error during upload"
       ssh_error: Unable to establish an ssh connection to the virtual machine...
       no_vm_type_specified: "No vm_type specified"
+      no_clone_id_specified: "No src_vm_id specified for clone operation"
       no_qemu_iso_or_qemu_iso_file_specified_for_vm_type_openvz: "No qemu_iso or qemu_iso_file specified for vm_type=:qemu"
       no_qemu_iso_or_qemu_iso_file_specified_for_vm_type_qemu: "No qemu_iso or qemu_iso_file specified for vm_type=:qemu"
       no_qemu_os_specified_for_vm_type_qemu: "No qemu_os specified for vm_type=:qemu"
