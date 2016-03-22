@@ -3,23 +3,26 @@ require 'vagrant-proxmox/provider'
 
 module VagrantPlugins::Proxmox
 
-	describe Provider do
+  describe Provider do
 
-		let(:environment) { Vagrant::Environment.new vagrantfile_name: 'dummy_box/Vagrantfile' }
-		let(:machine) { environment.machine(environment.primary_machine_name, :proxmox) }
-		let(:ui) { double('ui').as_null_object }
+    let(:machine) { environment.machine(environment.primary_machine_name, :proxmox) }
+    let(:environment) { Vagrant::Environment.new vagrantfile_name: 'dummy_box/Vagrantfile' }
+    let(:ui) { double('ui').as_null_object }
 
-		subject { described_class.new(machine) }
+    subject { described_class.new(machine) }
 
-		describe '#ssh_info', :need_box do
-			it 'should call the appropriate actions and return the ssh info' do
-				expect(Action::ConfigValidate).to be_called
-				expect(Action::ConnectProxmox).to be_called
-				expect(Action::ReadSSHInfo).to be_called { |env| env[:machine_ssh_info] = 'ssh_info'}
-				expect(subject.ssh_info).to eq('ssh_info')
-			end
-		end
+    describe '#ssh_info', :need_box do
+      it 'should call the appropriate actions and return the ssh info' do
+        expect(Action::ConfigValidate).to be_called
+        expect(Action::ConnectProxmox).to be_called
+        expect(Action::GetNodeList).to be_called
+        expect(Action::SelectNode).to be_called
+        expect(Action::AdjustForwardedPortParams).to be_called
+        expect(Action::ReadSSHInfo).to be_called { |env| env[:machine_ssh_info] = 'ssh_info' }
+        expect(subject.ssh_info).to eq('ssh_info')
+      end
+    end
 
-	end
+  end
 
 end

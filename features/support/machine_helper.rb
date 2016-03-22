@@ -74,7 +74,9 @@ def stub_default_calls
 		@storage_content_request_stub = stub_request(:get, proxmox_api_url('/nodes/node1/storage/local/content')).
 			to_return(body: {data: []}.to_json)
 		{body: {data: nil}.to_json}
-	end
+  end
+  stub_request(:get, proxmox_api_url('/nodes/node1/network/vmbr0')).
+		to_return body: {data: {}}.to_json
 end
 
 def up_machine

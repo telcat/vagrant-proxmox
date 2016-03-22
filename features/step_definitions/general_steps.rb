@@ -65,7 +65,7 @@ Then(/^an ssh shell should be provided$/) do
 end
 
 Then(/^the "([^"]*)" command is executed using ssh$/) do |command|
-	expect_vagrant_ssh_command /'#{command}'/
+	expect_vagrant_ssh_command /#{command}/
 end
 
 Given(/^a Vagrantfile with these provider settings:$/) do |settings|

@@ -16,7 +16,7 @@ Gem::Specification.new do |spec|
 	spec.add_runtime_dependency 'rest-client', '~> 1.6.7'
 	spec.add_runtime_dependency 'retryable', '~> 1.3.3'
 	spec.add_runtime_dependency 'activesupport', '~> 4.0.0'
-	spec.add_development_dependency 'rake'
+	spec.add_development_dependency 'rake', '10.5.0'
 	spec.add_development_dependency 'rspec', '~> 3.0.0'
 	spec.add_development_dependency 'simplecov', '~> 0.9.0'
 	spec.add_development_dependency 'simplecov-rcov', '~> 0.2.3'

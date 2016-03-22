@@ -194,9 +194,9 @@ module VagrantPlugins
 				b.use Call, IsCreated do |env1, b1|
 					if env1[:result]
 						b1.use Call, IsStopped do |env2, b2|
-							if env2[:result]
+              if env2[:result]
 								b2.use MessageNotRunning
-							else
+              else
 								b2.use SSHRun
 							end
 						end

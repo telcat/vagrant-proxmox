@@ -6,8 +6,11 @@ module VagrantSSHMock
 
 		def reset! example_group
 			@system_commands = []
-			example_group.allow(Vagrant::Util::SSH).to example_group.receive(:exec) do |ssh_info, opts|
-				@system_commands << (opts[:extra_args] || []).join(' ')
+      example_group.allow_any_instance_of(Vagrant::Action::Builtin::SSHRun).to example_group.receive(:call) do |_, env|
+        @system_commands << env[:ssh_run_command]
+      end
+			example_group.allow_any_instance_of(Vagrant::Action::Builtin::SSHExec).to example_group.receive(:call) do |_, env|
+				@system_commands << ""
 			end
 		end
 
