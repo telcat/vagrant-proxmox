@@ -18,6 +18,21 @@ module VagrantPlugins
 						env[:machine].config.vm.networks.select { |type, _| type == :public_network }.first[1][:ip] rescue nil
 					end
 				end
+                
+                protected
+                def get_machine_interface_name env
+                    env[:machine].config.vm.networks.select { |type, _| type == :public_network }.first[1][:interface] rescue nil
+                end
+                
+                protected
+                def get_machine_bridge_name env
+                    env[:machine].config.vm.networks.select { |type, _| type == :public_network }.first[1][:bridge] rescue nil
+                end
+                
+                protected
+                def get_machine_gw_ip env
+                    env[:machine].config.vm.networks.select { |type, _| type == :public_network }.first[1][:gw] rescue nil
+                end
 
 				protected
 				def get_machine_macaddress env

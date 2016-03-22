@@ -46,6 +46,18 @@ module VagrantPlugins
 										b2.use MessageUploadServerError
 									end
 								end
+							elsif env1[:machine].provider_config.vm_type == :lxc
+								b1.use Call, UploadTemplateFile do |env2, b2|
+									if env2[:result] == :ok
+										b2.use CreateVm
+										b2.use StartVm
+										b2.use SyncFolders
+									elsif env2[:result] == :file_not_found
+										b2.use MessageFileNotFound
+									elsif env2[:result] == :server_upload_error
+										b2.use MessageUploadServerError
+									end
+								end
 							elsif env1[:machine].provider_config.vm_type == :qemu
 								if env1[:machine].provider_config.qemu_iso
 									b1.use Call, UploadIsoFile do |env2, b2|
