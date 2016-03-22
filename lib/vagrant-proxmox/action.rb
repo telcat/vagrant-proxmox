@@ -47,15 +47,31 @@ module VagrantPlugins
 									end
 								end
 							elsif env1[:machine].provider_config.vm_type == :qemu
-								b1.use Call, UploadIsoFile do |env2, b2|
-									if env2[:result] == :ok
-										b2.use CreateVm
-										b2.use StartVm
-										b2.use SyncFolders
-									elsif env2[:result] == :file_not_found
-										b2.use MessageFileNotFound
-									elsif env2[:result] == :server_upload_error
-										b2.use MessageUploadServerError
+								if env1[:machine].provider_config.qemu_iso
+									b1.use Call, UploadIsoFile do |env2, b2|
+										if env2[:result] == :ok
+											b2.use CreateVm
+											b2.use StartVm
+											b2.use SyncFolders
+										elsif env2[:result] == :file_not_found
+											b2.use MessageFileNotFound
+										elsif env2[:result] == :server_upload_error
+											b2.use MessageUploadServerError
+										end
+									end
+								else
+									b1.use CloneVm
+									b1.use Call, IsCreated do |env2, b2|
+										if env2[:result]
+											b2.use AdjustForwardedPortParams
+											b2.use ConfigClone
+											b2.use StartVm
+											b2.use SyncFolders
+										elsif env2[:result] == :file_not_found
+											b2.use MessageFileNotFound
+										elsif env2[:result] == :server_upload_error
+											b2.use MessageUploadServerError
+										end
 									end
 								end
 							end
@@ -134,6 +150,9 @@ module VagrantPlugins
 			Vagrant::Action::Builder.new.tap do |b|
 				b.use ConfigValidate
 				b.use ConnectProxmox
+				b.use GetNodeList
+				b.use SelectNode
+				b.use AdjustForwardedPortParams
 				b.use ReadSSHInfo
 			end
 		end
@@ -191,6 +210,9 @@ module VagrantPlugins
 		autoload :MessageFileNotFound, action_root.join('message_file_not_found')
 		autoload :MessageUploadServerError, action_root.join('message_upload_server_error')
 		autoload :CreateVm, action_root.join('create_vm')
+		autoload :CloneVm, action_root.join('clone_vm')
+		autoload :AdjustForwardedPortParams, action_root.join('adjust_forwarded_port_params')
+		autoload :ConfigClone, action_root.join('config_clone')
 		autoload :StartVm, action_root.join('start_vm')
 		autoload :StopVm, action_root.join('stop_vm')
 		autoload :ShutdownVm, action_root.join('shutdown_vm')

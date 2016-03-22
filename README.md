@@ -8,6 +8,8 @@ and provision Proxmox virtual machines.
 
 * Create/Destroy OpenVZ containers from specified templates
 * Start/Shutdown OpenVZ containers
+* Create/Destroy Qemu containers from specified templates or iso file
+* Start/Shutdown Qemu containers
 * SSH into virtual machine
 * Provision the virtual machine
 * Synced folder support via rsync
@@ -17,6 +19,7 @@ and provision Proxmox virtual machines.
 * For OpenVZ containers you need a Vagrant compatible OpenVZ template
 * For OpenVZ containers only routed network mode is currently supported
 * For KVM machines the ISO file needs to be a Vagrant compatible live system or automatic installation
+* For KVM machines the Qemu template has to be on the selected_node
 
 ## Requirements
 
@@ -125,6 +128,8 @@ Finally run `vagrant up --provider=proxmox` to create and start the new OpenVZ c
 * `qemu_iso` The qemu iso file to use for the virtual machine
 * `qemu_iso_file` The qemu iso file to upload and use for the virtual machine (can be specified instead of `qemu_iso`)
 * `replace_qemu_iso_file` Set to true if the iso file should be replaced on the server (default: false)
+* `replace_template` Set to true if the iso file should be replaced on the server (default: false)
+* `qemu_template` The name of a qemu template which is used to create a clone (can be specified instead of `qemu_iso[_file]`)
 * `qemu_disk_size` The qemu disk size to use for the virtual machine, e.g. '30G'
 * `qemu_storage` The storage pool to use, i.e. the value of the `storage` key of the hash returned by `pvesh get /nodes/{node}/storage`, e.g. 'raid', 'local', 'cephstore'
 * `qemu_cores` The number of cores per socket available to the VM

@@ -30,6 +30,18 @@ module VagrantPlugins
 				error_key :vm_create_error
 			end
 
+			class VMCloneError < VagrantProxmoxError
+				error_key :vm_clone_error
+			end
+
+			class NoTemplateAvailable < VagrantProxmoxError
+				error_key :no_template_available
+			end
+
+			class VMConfigError < VagrantProxmoxError
+				error_key :vm_configure_error
+			end
+
 			class VMDestroyError < VagrantProxmoxError
 				error_key :vm_destroy_error
 			end

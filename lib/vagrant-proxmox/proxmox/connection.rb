@@ -100,6 +100,34 @@ module VagrantPlugins
 				wait_for_completion task_response: response, timeout_message: 'vagrant_proxmox.errors.create_vm_timeout'
 			end
 
+			def clone_vm node: required('node'), vm_type: required('node'), params: required('params')
+				vm_id = params[:vmid]
+				params.delete(:vmid)
+				params.delete(:ostype)
+				params.delete(:ide2)
+				params.delete(:sata0)
+				params.delete(:sockets)
+				params.delete(:cores)
+				params.delete(:description)
+				params.delete(:memory)
+				params.delete(:net0)
+				response = post "/nodes/#{node}/#{vm_type}/#{vm_id}/clone", params
+				wait_for_completion task_response: response, timeout_message: 'vagrant_proxmox.errors.create_vm_timeout'
+			end
+
+			def config_clone node: required('node'), vm_type: required('node'), params: required('params')
+				vm_id = params[:vmid]
+				params.delete(:vmid)
+				response = post "/nodes/#{node}/#{vm_type}/#{vm_id}/config", params
+				wait_for_completion task_response: response, timeout_message: 'vagrant_proxmox.errors.create_vm_timeout'
+			end
+
+			def get_vm_config node: required('node'), vm_id: required('node'), vm_type: required('node')
+				response = get "/nodes/#{node}/#{vm_type}/#{vm_id}/config"
+				response = response[:data]
+				response.empty? ? raise(VagrantPlugins::Proxmox::Errors::VMConfigError) : response
+			end
+
 			def start_vm vm_id
 				vm_info = get_vm_info vm_id
 				response = post "/nodes/#{vm_info[:node]}/#{vm_info[:type]}/#{vm_id}/status/start", nil
@@ -119,11 +147,19 @@ module VagrantPlugins
 			end
 
 			def get_free_vm_id
+                                # to avoid collisions in multi-vm setups
+				sleep (rand(1..3) + 0.1 * rand(0..9))
 				response = get "/cluster/resources?type=vm"
 				allowed_vm_ids = vm_id_range.to_set
 				used_vm_ids = response[:data].map { |vm| vm[:vmid] }
 				free_vm_ids = (allowed_vm_ids - used_vm_ids).sort
 				free_vm_ids.empty? ? raise(VagrantPlugins::Proxmox::Errors::NoVmIdAvailable) : free_vm_ids.first
+			end
+
+			def get_qemu_template_id template
+				response = get "/cluster/resources?type=vm"
+				found_ids = response[:data].select { |vm| vm[:type] == 'qemu' }.select { |vm| vm[:template] == 1 }.select { |vm| vm[:name] == template }.map { |vm| vm[:vmid] }
+				found_ids.empty? ? raise(VagrantPlugins::Proxmox::Errors::NoTemplateAvailable) : found_ids.first
 			end
 
 			def upload_file file, content_type: required('content_type'), node: required('node'), storage: required('storage'), replace: false
@@ -142,6 +178,15 @@ module VagrantPlugins
 			def list_storage_files node: required('node'), storage: required('storage')
 				res = get "/nodes/#{node}/storage/#{storage}/content"
 				res[:data].map { |e| e[:volid] }
+			end
+
+			def get_node_ip node, interface
+				begin
+					response = get "/nodes/#{node}/network/#{interface}"
+					response[:data][:address]
+				rescue ApiError::ServerError
+					:not_created
+				end
 			end
 
 			# This is called every time to retrieve the node and vm_type, hence on large
@@ -223,3 +268,4 @@ module VagrantPlugins
 		end
 	end
 end
+
