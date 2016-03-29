@@ -64,6 +64,7 @@ Vagrant.configure('2') do |config|
     
 end
 ```
+You can change the `proxmox.vm_type = :openvz` line to `proxmox.vm_type = :lxc` to use lxc instead of openvz
 
 If you want KVM the Vagrantfile could look as follows:
 
@@ -111,7 +112,9 @@ Finally run `vagrant up --provider=proxmox` to create and start the new OpenVZ c
 * `password` The password of the above user
 * `vm_id_range` The possible range of machine ids. The smallest free one is chosen for a new machine
 * `vm_name_prefix` An optional string that is prepended before the vm name
-* `vm_type` The virtual machine type, e.g. :openvz or :qemu
+* `vm_type` The virtual machine type, e.g. :openvz , :qemu or :lxc
+* `vm_disk_size` The vm disk size to use for the virtual machine, e.g. '30G'
+* `vm_storage` The storage pool to use, i.e. the value of the `storage` key of the hash returned by `pvesh get /nodes/{node}/storage`, e.g. 'raid', 'local', 'cephstore'
 * `openvz_os_template` The name of the template from which the OpenVZ container should be created
 * `openvz_template_file` The openvz os template file to upload and use for the virtual machine (can be specified instead of `openvz_os_template`)
 * `replace_openvz_template_file` Set to true if the openvz os template file should be replaced on the server (default: false)
