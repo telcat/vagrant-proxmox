@@ -151,6 +151,18 @@ module VagrantPlugins
 			# @return [String]
 			attr_accessor :qemu_bridge
 
+			# The qemu disk format, e.g. 'raw', 'qcow2'
+			# defaults to 'qcow2' for backwards compatability
+			#
+			# @return [String]
+			attr_accessor :qemu_disk_format
+
+			# The qemu cache, e.g. '', 'writeback'
+			# defaults to '' for backwards compatability
+			#
+			# @return [String]
+			attr_accessor :qemu_cache
+
 			def initialize
 				@endpoint = UNSET_VALUE
 				@selected_node = UNSET_VALUE
@@ -181,6 +193,8 @@ module VagrantPlugins
 				@qemu_storage = 'raid'
 				@qemu_nic_model = 'e1000'
 				@qemu_bridge = 'vmbr0'
+				@qemu_disk_format = 'qcow2'
+				@qemu_cache = 'none'
 			end
 
 			# This is the hook that is called to finalize the object before it is put into use.
