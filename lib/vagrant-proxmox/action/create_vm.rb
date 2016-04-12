@@ -70,7 +70,7 @@ module VagrantPlugins
 					 ostemplate: config.openvz_os_template,
 					 hostname: env[:machine].config.vm.hostname || env[:machine].name.to_s,
 					 password: 'vagrant',
-					 storage: "#{config.vm_storage}:#{config.vm_disk_size}",
+					 rootfs: "#{config.vm_storage}:#{config.vm_disk_size}",
 					 memory: config.vm_memory,
 					 description: "#{config.vm_name_prefix}#{env[:machine].name}"}
 					.tap do |params|
