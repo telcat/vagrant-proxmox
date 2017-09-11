@@ -3,20 +3,6 @@ require 'rest-client'
 require 'retryable'
 require 'required_parameters'
 
-# Fix wrong header unescaping in RestClient library.
-module RestClient
-	class Request
-		def make_headers user_headers
-			unless @cookies.empty?
-				user_headers[:cookie] = @cookies.map { |(key, val)| "#{key.to_s}=#{val}" }.sort.join('; ')
-			end
-			headers = stringify_headers(default_headers).merge(stringify_headers(user_headers))
-			headers.merge!(@payload.headers) if @payload
-			headers
-		end
-	end
-end
-
 module VagrantPlugins
 	module Proxmox
 		class Connection
