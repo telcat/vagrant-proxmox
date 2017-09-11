@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
 	spec.description = 'Enables Vagrant to manage virtual machines on a Proxmox server.'
 	spec.required_ruby_version = '>= 2'
 
-	spec.add_runtime_dependency 'rest-client', '~> 1.6.7'
+	spec.add_runtime_dependency 'rest-client', '~> 2.0'
 	spec.add_runtime_dependency 'retryable', '~> 1.3.3'
 	spec.add_runtime_dependency 'activesupport', '~> 4.0.0'
 	spec.add_development_dependency 'rake', '10.5.0'
@@ -25,7 +25,7 @@ Gem::Specification.new do |spec|
 	spec.add_development_dependency 'libnotify', '~> 0.8.3'
 	spec.add_development_dependency 'timecop', '~>0.7.1'
 	spec.add_development_dependency 'cucumber', '~>1.3.15'
-	spec.add_development_dependency 'webmock', '~> 1.18.0'
+	spec.add_development_dependency 'webmock', '~> 3.0.1'
 	spec.add_development_dependency 'awesome_print', '~> 1.2.0'
 
 	spec.files = Dir.glob('lib/**/*.rb') + Dir.glob('locales/**/*.yml')
