@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
 	spec.description = 'Enables Vagrant to manage virtual machines on a Proxmox server.'
 	spec.required_ruby_version = '>= 2'
 
-	spec.add_runtime_dependency 'rest-client', '~> 2.1.0.rc1'
+	spec.add_runtime_dependency 'rest-client', '~> 2.0'
 	spec.add_runtime_dependency 'retryable', '~> 1.3.3'
 	spec.add_runtime_dependency 'activesupport', '~> 4.0.0'
 	spec.add_development_dependency 'rake', '10.5.0'
