@@ -9,5 +9,4 @@ group :development do
 	gem "vagrant", '1.4.3',
 	    :git => 'https://github.com/mitchellh/vagrant.git',
 		:ref => 'v1.4.3'
-	gem "rest-client", "2.1.0.rc1"
 end
