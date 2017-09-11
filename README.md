@@ -83,6 +83,7 @@ Vagrant.configure('2') do |config|
         proxmox.qemu_os = :l26
         proxmox.qemu_disk_size = '30G'
         proxmox.qemu_storage = 'local'
+        proxmox.qemu_format = 'raw'
         proxmox.qemu_iso_file = '/home/user/system.iso'
         proxmox.vm_name_prefix = 'vagrant_test_'
         proxmox.qemu_cores = 1
@@ -137,6 +138,7 @@ Finally run `vagrant up --provider=proxmox` to create and start the new OpenVZ c
 * `qemu_nic_model` which model of network interface card to use, default 'e1000'
 * `qemu_bridge` connect automatically to this bridge, default 'vmbr0'
 * `selected_node` If specified, only this specific node is used to create machines 
+* `qemu_format` If specified, sets the image format (default: qcow2) 
 
 ## Build the plugin
 
